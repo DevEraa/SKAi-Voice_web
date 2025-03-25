@@ -35,7 +35,7 @@ export default function CallHistory() {
     return (
         <>
             <Navbar />
-            <div className="container mx-auto p-6 w-4/5">
+            <div className="container mx-auto p-6 w-full md:w-4/5">
                 <div className="flex items-center justify-between mb-4">
                     
                     <div className="relative w-1/3">
@@ -65,10 +65,10 @@ export default function CallHistory() {
                                 <tbody className="divide-y divide-gray-300 bg-white">
                                     {currentRecords.map((user, index) => (
                                         <tr key={index} className="hover:bg-gray-100 transition">
-                                              <td className="px-6 py-4 text-sm font-medium text-gray-800">{user.Name}</td>
-                                            <td className="px-6 py-4 text-sm font-medium text-gray-800">{user.Date}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-800 ">{user.Time}</td>
-                                            <td className="px-6 py-4 text-sm font-medium text-gray-800 text-center">{user.Cost}</td>
+                                              <td className="px-6 py-4 text-sm font-medium text-gray-800 text-nowrap">{user.Name}</td>
+                                            <td className="px-6 py-4 text-sm font-medium text-gray-800 text-nowrap">{user.Date}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-800 text-nowrap">{user.Time}</td>
+                                            <td className="px-6 py-4 text-sm font-medium text-gray-800 text-center text-nowrap">{user.Cost}</td>
 
                                             <td className="px-6 py-4 text-center">
                                                 <button className="text-red-500 hover:text-red-700 transition">
@@ -87,7 +87,7 @@ export default function CallHistory() {
                         className="px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-200 transition disabled:opacity-50">
                         Previous
                     </button>
-                    <span className="text-gray-700">Page {currentPage} of {totalPages}</span>
+                    <span className="text-gray-700 hidden md:inline-block">Page {currentPage} of {totalPages}</span>
                     <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)}
                         className="px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-200 transition disabled:opacity-50">
                         Next

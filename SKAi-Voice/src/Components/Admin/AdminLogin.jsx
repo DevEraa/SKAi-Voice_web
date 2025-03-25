@@ -8,7 +8,7 @@ export default function AdminLogin() {
     return (
         <div className="flex flex-col md:flex-row h-screen bg-gradient-to-r from-blue-500 to-blue-700">
             {/* Left Side - Login Form */}
-            <div className="w-full md:w-1/2 flex flex-col justify-center items-center bg-white text-blue-900 p-10 shadow-xl rounded-lg">
+            <div className="w-full md:w-1/2 flex flex-col justify-center items-center bg-white text-blue-600 p-10 shadow-xl rounded-lg">
                 <img src={Logo} alt="Logo" className="w-24 h-24 mb-4 animate-pulse" />
                 <h1 className="text-4xl font-bold mb-6 animate-fade-in">Welcome Back</h1>
                 <p className="mb-6 text-lg text-gray-600">Login to your Admin account</p>

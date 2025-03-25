@@ -4,8 +4,10 @@ import { Eye, EyeOff } from 'lucide-react';
 import {
     NavLink
 } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
+    const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [activecard, setactivecard] = useState(false);
@@ -54,9 +56,7 @@ const Navbar = () => {
 
                             {/* Desktop Navigation */}
                             <div className="hidden md:flex space-x-6">
-                                {/* <a href="#" className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium">
-                                    Dashboard
-                                </a> */}
+
                                 <NavLink
                                     to="/admindashboard"
                                     className={({ isActive }) =>
@@ -65,9 +65,7 @@ const Navbar = () => {
                                 >
                                     Home
                                 </NavLink>
-                                {/* <a href="#" className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium">
-                                    User
-                                </a> */}
+
                                 <NavLink
                                     to="/user"
                                     className={({ isActive }) =>
@@ -76,9 +74,7 @@ const Navbar = () => {
                                 >
                                     User
                                 </NavLink>
-                                {/* <a href="#" className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium">
-                                    Call Log
-                                </a> */}
+
                                 <NavLink
                                     to="/calllog"
                                     className={({ isActive }) =>
@@ -129,7 +125,7 @@ const Navbar = () => {
                                     alt="User profile"
                                     className="h-8 w-8 rounded-full"
                                 />
-                                <span className="text-gray-600 text-sm">Ritika Malve</span>
+                                <span className="text-gray-600 text-sm">Mr. Rahul Patil</span>
                             </div>
 
                             {/* Mobile Menu Button */}
@@ -147,31 +143,45 @@ const Navbar = () => {
                     {/* Mobile Menu */}
                     {isMenuOpen && (
                         <div className="md:hidden pb-4 space-y-2" >
-                            <a href="#" className="block text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium">
-                                Dashboard
-                            </a>
-                            <a href="#" className="block text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium">
-                                Team
-                            </a>
-                            <a href="#" className="block text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium">
-                                Projects
-                            </a>
-                            <a href="#" className="block text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium">
-                                Calendar
-                            </a>
+                            <NavLink
+                                to="/admindashboard"
+                                className={({ isActive }) =>
+                                    isActive ? "text-sm text-blue-600 px-3 py-2 font-bold " : " text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                                }
+                            >
+                                Home
+                            </NavLink>
 
-                            <button className="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-base font-medium transition-colors">
-                                + New Job
+                            <NavLink
+                                to="/user"
+                                className={({ isActive }) =>
+                                    isActive ? "text-sm text-blue-600 px-3 py-2 font-bold " : " text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                                }
+                            >
+                                User
+                            </NavLink>
+
+                            <NavLink
+                                to="/calllog"
+                                className={({ isActive }) =>
+                                    isActive ? "text-sm text-blue-600 px-3 py-2 font-bold " : " text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                                }
+                            >
+                                Call Log
+                            </NavLink>
+                            <button onClick={() => setModalOpen(true)} className="w-full my-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-base font-medium transition-colors">
+                                + New User
                             </button>
 
-                            <div className="flex items-center space-x-3 px-3 py-2">
+                            <div className="flex md:hidden items-center space-x-2 cursor-pointer" onClick={() => setactivecard(!activecard)}>
                                 <img
-                                    src="/profile.png"
+                                    src="https://www.gravatar.com/avatar/2c7d99fe281ecd3bcd65ab915bac6dd5?s=250"
                                     alt="User profile"
                                     className="h-8 w-8 rounded-full"
                                 />
-                                <span className="text-gray-700 text-base">John Doe</span>
+                                <span className="text-gray-600 text-sm">Mr. Rahul Patil</span>
                             </div>
+
                         </div>
                     )}
                 </div>
@@ -185,7 +195,7 @@ const Navbar = () => {
                         {/* Profile Content */}
                         <div className="px-6 py-4">
                             <div className="flex flex-col items-start space-y-2">
-                                <h3 className="text-2xl font-bold text-blue-500">Ritika Malve</h3>
+                                <h3 className="text-2xl font-bold text-blue-500">Mr. Rahul Patil</h3>
                                 <span className="px-3 py-1 rounded-full bg-white/20 text-sm text-blue-500 font-medium tracking-wide">
                                     Admin
                                 </span>
@@ -216,7 +226,7 @@ const Navbar = () => {
 
                             {/* Action Buttons */}
                             <div className="mt-8 space-y-4">
-                                <button className="w-full flex items-center justify-center space-x-2 py-3 px-6 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition-all duration-300 shadow-md hover:shadow-lg">
+                                <button onClick={() => navigate('/adminlogin')} className="w-full flex items-center justify-center space-x-2 py-3 px-6 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all duration-300 shadow-md hover:shadow-lg">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                                         <polyline points="16 17 21 12 16 7" />
@@ -226,7 +236,7 @@ const Navbar = () => {
                                 </button>
 
                                 <div className="text-center pt-2">
-                                    <a href="#" className="text-indigo-600 hover:text-indigo-700 text-sm font-medium transition-colors duration-300 hover:underline">
+                                    <a href="#" className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors duration-300 hover:underline">
                                         Forgot Password?
                                     </a>
                                 </div>

@@ -18,10 +18,10 @@ export default function Calllog() {
     return (
         <>
             <Navbar />
-            <div className="container mx-auto p-6 w-4/5">
-                <div className="flex items-center justify-between mb-4">
-                    <h1 className='text-xl font-semibold'>User : Nayan </h1>
-                    <div className="relative w-1/3">
+            <div className="container mx-auto p-3 md:w-4/5 w-full">
+                <div className="flex flex-col sm:flex-row items-center justify-between mb-4">
+                    <h1 className='text-xl font-semibold py-2'>User : Nayan </h1>
+                    <div className="relative md:w-1/3 w-full">
                         <input
                             type="text"
                             placeholder="Search..."

@@ -6,7 +6,7 @@ export default function Audiocallpre() {
     const [isMuted, setIsMuted] = useState(false);
 
     return (
-        <div className="w-5/6 h-[70vh] mx-auto my-16  bg-white rounded-xl overflow-hidden transition-all duration-300 shadow-2xl flex flex-col">
+        <div className="w-full  md:w-5/6 h-[70vh] mx-auto my-16  bg-white rounded-xl overflow-hidden transition-all duration-300 shadow-2xl flex flex-col">
             {!isSessionStarted ? (
                 <>
                     {/* Initial View */}
@@ -32,7 +32,7 @@ export default function Audiocallpre() {
                 </>
             ) : (
                 /* Meeting View */
-                <div className="flex-1 flex flex-row items-center justify-center p-8 gap-5 bg-blue-300">
+                <div className="flex-1 flex flex-row overflow-x-auto  items-center justify-center p-8 gap-5 bg-blue-300">
                     {/* Profile Card */}
                     <div className="bg-white rounded-2xl shadow-lg p-6 w-80 transition-all duration-300 hover:shadow-xl border border-blue-100">
                         <div className="flex flex-col items-center space-y-4">
@@ -43,7 +43,7 @@ export default function Audiocallpre() {
 
                             {/* Profile Info */}
                             <div className="text-center">
-                                <h2 className="text-xl font-semibold text-gray-800">Ritika Malve</h2>
+                                <h2 className="text-xl font-semibold text-gray-800">Mr. Rahul Patil</h2>
                                 <p className="text-blue-500 text-sm mt-1">Host</p>
                             </div>
 
@@ -101,7 +101,7 @@ export default function Audiocallpre() {
 
                             {/* Profile Info */}
                             <div className="text-center">
-                                <h2 className="text-xl font-semibold text-gray-800">Ritika Malve</h2>
+                                <h2 className="text-xl font-semibold text-gray-800">Mr. Rahul Patil</h2>
                                 <p className="text-blue-500 text-sm mt-1">Host</p>
                             </div>
 
@@ -159,7 +159,7 @@ export default function Audiocallpre() {
 
                             {/* Profile Info */}
                             <div className="text-center">
-                                <h2 className="text-xl font-semibold text-gray-800">Ritika Malve</h2>
+                                <h2 className="text-xl font-semibold text-gray-800">Mr. Rahul Patil</h2>
                                 <p className="text-blue-500 text-sm mt-1">Host</p>
                             </div>
 

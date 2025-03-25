@@ -4,8 +4,10 @@ import { Eye, EyeOff } from 'lucide-react';
 import {
     NavLink
 } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function Navbar() {
+    const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
 
     const [modalOpen, setModalOpen] = useState(false);
@@ -30,7 +32,7 @@ export default function Navbar() {
 
     return (
         <>
-            <nav className="sticky top-0 px-4 py-4 flex justify-between shadow-md items-center bg-white">
+            <nav className="sticky top-0 px-4 py-4 flex justify-between shadow-md items-center bg-white z-50">
                 <a className="text-3xl font-bold leading-none" href="#">
                     <img src={logo} alt="" width={70} />
                 </a>
@@ -48,9 +50,6 @@ export default function Navbar() {
                 </div>
                 <ul className="hidden absolute top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2 lg:flex lg:mx-auto lg:flex lg:items-center lg:w-auto lg:space-x-6">
                     <li>
-                        {/* <a className="text-sm text-gray-400 hover:text-gray-500" href="#">
-                            Home
-                        </a> */}
                         <NavLink
                             to="/superadmindashboard"
                             className={({ isActive }) =>
@@ -102,9 +101,6 @@ export default function Navbar() {
                         </svg>
                     </li>
                     <li>
-                        {/* <a className="text-sm text-gray-400 hover:text-gray-500" href="#">
-                            Call History
-                        </a> */}
                         <NavLink
                             to="/callhistory"
                             className={({ isActive }) =>
@@ -119,7 +115,7 @@ export default function Navbar() {
                 </ul>
                 <a
                     className="hidden lg:inline-block py-2 px-6 bg-blue-500 hover:bg-blue-600 text-sm text-white font-bold rounded-xl transition duration-200"
-                    href="#"
+                    onClick={() => navigate('/')}
                 >
                     Log out
                 </a>
@@ -153,45 +149,49 @@ export default function Navbar() {
                     <div>
                         <ul>
                             <li className="mb-1">
-                                <a
-                                    className="block p-4 text-sm font-semibold text-gray-400 hover:bg-blue-50 hover:text-blue-600 rounded"
-                                    href="#"
+                                <NavLink
+                                    to="/superadmindashboard"
+                                    className={({ isActive }) =>
+                                        isActive ? "text-sm text-blue-600 font-bold " : " text-sm text-gray-400 hover:text-gray-500"
+                                    }
                                 >
                                     Home
-                                </a>
+                                </NavLink>
                             </li>
                             <li className="mb-1" onClick={() => setModalOpen(true)}>
                                 <a
-                                    className="block p-4 text-sm font-semibold text-gray-400 hover:bg-blue-50 hover:text-blue-600 rounded"
+                                    className="block py-4 text-sm font-semibold text-gray-400 hover:bg-blue-50 hover:text-blue-600 rounded"
                                     href="#"
                                 >
                                     Add Admin
                                 </a>
                             </li>
                             <li className="mb-1">
-                                <a
-                                    className="block p-4 text-sm font-semibold text-gray-400 hover:bg-blue-50 hover:text-blue-600 rounded"
-                                    href="#"
+                                <NavLink
+                                    to="/callhistory"
+                                    className={({ isActive }) =>
+                                        isActive ? "text-sm text-blue-600 font-bold " : " text-sm text-gray-400 hover:text-gray-500"
+                                    }
                                 >
                                     Call History
-                                </a>
+                                </NavLink>
                             </li>
 
 
                         </ul>
                     </div>
                     <div className="mt-auto">
-                        <div className="pt-6">
+                        <div className="pt-6" onClick={() => navigate('/')}>
 
                             <a
                                 className="block px-4 py-3 mb-2 leading-loose text-xs text-center text-white font-semibold bg-blue-600 hover:bg-blue-700  rounded-xl"
-                                href="#"
+
                             >
                                 Log Out
                             </a>
                         </div>
                         <p className="my-4 text-xs text-center text-gray-400">
-                            <span>Desing by DevEaa Copyright © 2025</span>
+                            {/* <span>Desing by DevEaa Copyright © 2025</span> */}
                         </p>
                     </div>
                 </nav>

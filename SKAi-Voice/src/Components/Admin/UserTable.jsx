@@ -56,9 +56,9 @@ export default function UserTable() {
     console.log("deletepopup", deletepopup)
     return (
         <>
-            <div className="container mx-auto p-6 w-4/5">
+            <div className="container mx-auto p-3 md:w-4/5 w-full">
                 <div className="flex items-center justify-between mb-4">
-                    <div className="relative w-1/3">
+                    <div className="relative md:w-1/3 w-full">
                         <input
                             type="text"
                             placeholder="Search..."
@@ -124,7 +124,7 @@ export default function UserTable() {
                         className="px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-200 transition disabled:opacity-50">
                         Previous
                     </button>
-                    <span className="text-gray-700">Page {currentPage} of {totalPages}</span>
+                    <span className="text-gray-700 hidden md:inline-block">Page {currentPage} of {totalPages}</span>
                     <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)}
                         className="px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-200 transition disabled:opacity-50">
                         Next
