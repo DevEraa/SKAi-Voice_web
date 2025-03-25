@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { Search, Lock, Unlock, Edit, Trash2, FileText, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-export default function Table() {
 
+export default function UserTable() {
     const navigate = useNavigate();
 
     const [modalOpen, setModalOpen] = useState(false);
@@ -15,14 +15,12 @@ export default function Table() {
     const [conformpasswordVisible, setConformPasswordVisible] = useState(false);
 
     const [users, setUsers] = useState([
-        { adminName: "John Brown", username: "john45", locked: false },
-        { adminName: "Jim Green", username: "jim27", locked: true },
-        { adminName: "Joe Black", username: "joe31", locked: false },
-        { adminName: "Sarah Lee", username: "sarah22", locked: false },
-        { adminName: "Robert King", username: "robert99", locked: true },
-        { adminName: "Alice Johnson", username: "alice76", locked: false },
-        { adminName: "Michael Smith", username: "mike88", locked: true },
-        { adminName: "David White", username: "david45", locked: false }
+        { Name: "John Brown", channelId: "ABCD12345", username: "john45", mobileno: 78946232332, locked: false },
+        { Name: "John Brown", channelId: "ABCD12345", username: "john45", mobileno: 78946232332, locked: false },
+        { Name: "John Brown", channelId: "ABCD12345", username: "john45", mobileno: 78946232332, locked: false },
+        { Name: "John Brown", channelId: "ABCD12345", username: "john45", mobileno: 78946232332, locked: false },
+        { Name: "John Brown", channelId: "ABCD12345", username: "john45", mobileno: 78946232332, locked: false },
+
     ]);
 
     const toggleLock = (index) => {
@@ -30,7 +28,7 @@ export default function Table() {
     };
 
     const filteredUsers = users.filter(user =>
-        user.adminName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.username.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -77,9 +75,11 @@ export default function Table() {
                             <table className="min-w-full divide-y divide-gray-300">
                                 <thead className="bg-blue-600 text-white">
                                     <tr>
-                                        <th className="px-6 py-3 text-start text-sm font-semibold">Admin Name</th>
+                                        <th className="px-6 py-3 text-start text-sm font-semibold">Name</th>
                                         <th className="px-6 py-3 text-start text-sm font-semibold">Username</th>
-                                        <th className="px-6 py-3 text-center text-sm font-semibold">Report</th>
+                                        <th className="px-6 py-3 text-start text-sm font-semibold">Channel ID</th>
+                                        <th className="px-6 py-3 text-start text-sm font-semibold">Mobile Number</th>
+                                        {/* <th className="px-6 py-3 text-center text-sm font-semibold">Vew</th> */}
                                         <th className="px-6 py-3 text-center text-sm font-semibold">Lock/Unlock</th>
                                         <th className="px-6 py-3 text-center text-sm font-semibold">Update</th>
                                         <th className="px-6 py-3 text-center text-sm font-semibold">Delete</th>
@@ -88,13 +88,15 @@ export default function Table() {
                                 <tbody className="divide-y divide-gray-300 bg-white">
                                     {currentRecords.map((user, index) => (
                                         <tr key={index} className="hover:bg-gray-100 transition">
-                                            <td className="px-6 py-4 text-sm font-medium text-gray-800">{user.adminName}</td>
+                                            <td className="px-6 py-4 text-sm font-medium text-gray-800">{user.Name}</td>
                                             <td className="px-6 py-4 text-sm text-gray-800">{user.username}</td>
-                                            <td className="px-6 py-4 text-center cursor-pointer">
+                                            <td className="px-6 py-4 text-sm font-medium text-gray-800">{user.channelId}</td>
+                                            <td className="px-6 py-4 text-sm font-medium text-gray-800">{user.mobileno}</td>
+                                            {/* <td className="px-6 py-4 text-center cursor-pointer">
                                                 <button onClick={() => navigate('/adminhistory')} className="text-blue-500 hover:text-blue-700 transition">
                                                     <Eye size={20} />
                                                 </button>
-                                            </td>
+                                            </td> */}
                                             <td className="px-6 py-4 text-center">
                                                 <button onClick={() => toggleLock(index)} className="text-gray-600 hover:text-gray-800 transition">
                                                     {user.locked ? <Unlock size={20} /> : <Lock size={20} />}
@@ -134,7 +136,7 @@ export default function Table() {
                 <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50 animate-fadeIn">
                     <div className="bg-white p-6 rounded-xl shadow-2xl w-[500px] max-w-[95%] border border-gray-100 animate-scaleIn">
                         <div className="flex justify-between items-center pb-4 mb-4 border-b border-gray-200">
-                            <h2 className="text-2xl font-bold text-gray-800">Update Admin</h2>
+                            <h2 className="text-2xl font-bold text-gray-800">Update User</h2>
                             <button
                                 onClick={() => setModalOpen(false)}
                                 className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
@@ -157,11 +159,11 @@ export default function Table() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Admin Limit</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Token ID</label>
                                     <input
                                         type="number"
                                         name="adminLimit"
-                                        placeholder="Set admin limit"
+                                        placeholder="Token ID"
                                         onChange={handleChange}
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
@@ -191,7 +193,7 @@ export default function Table() {
                                     <input
                                         type={conformpasswordVisible ? "text" : "password"}
                                         name="confirmPassword"
-                                        placeholder="Confirm your password"
+                                        placeholder="Confirm password"
                                         onChange={handleChange}
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all pr-10"
                                     />
@@ -207,34 +209,35 @@ export default function Table() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">App ID</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Channel ID</label>
                                     <input
                                         type="text"
                                         name="appId"
-                                        placeholder="Enter app ID"
+                                        placeholder="Channel ID"
                                         onChange={handleChange}
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Token ID</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
                                     <input
                                         type="text"
-                                        name="tokenId"
-                                        placeholder="Token ID"
+                                        name="username"
+                                        placeholder="Username"
                                         onChange={handleChange}
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
                                 </div>
+
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Channel ID</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">App ID</label>
                                     <input
                                         type="text"
                                         name="channelId"
-                                        placeholder="Channel ID"
+                                        placeholder="App ID"
                                         onChange={handleChange}
                                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                     />
@@ -251,7 +254,7 @@ export default function Table() {
                                 </div>
                             </div>
 
-                            <div>
+                            {/* <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
                                 <input
                                     type="text"
@@ -260,13 +263,13 @@ export default function Table() {
                                     onChange={handleChange}
                                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                 />
-                            </div>
+                            </div> */}
 
                             <button
                                 type="submit"
                                 className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg active:scale-95 transform mt-4"
                             >
-                                Update Admin
+                                Update User
                             </button>
                         </form>
                     </div>
@@ -340,9 +343,5 @@ export default function Table() {
                 </div>
             )}
         </>
-
-
-
-
-    );
+    )
 }

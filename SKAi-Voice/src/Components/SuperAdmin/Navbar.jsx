@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import logo from '../../assets/logo.jpg';
 import { Eye, EyeOff } from 'lucide-react';
+import {
+    NavLink
+} from "react-router-dom";
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -45,9 +48,18 @@ export default function Navbar() {
                 </div>
                 <ul className="hidden absolute top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2 lg:flex lg:mx-auto lg:flex lg:items-center lg:w-auto lg:space-x-6">
                     <li>
-                        <a className="text-sm text-gray-400 hover:text-gray-500" href="#">
+                        {/* <a className="text-sm text-gray-400 hover:text-gray-500" href="#">
                             Home
-                        </a>
+                        </a> */}
+                        <NavLink
+                            to="/superadmindashboard"
+                            className={({ isActive }) =>
+                                isActive ? "text-sm text-blue-600 font-bold " : " text-sm text-gray-400 hover:text-gray-500"
+                            }
+                        >
+                            Home
+                        </NavLink>
+
                     </li>
                     <li className="text-gray-300">
                         <svg
@@ -66,9 +78,12 @@ export default function Navbar() {
                         </svg>
                     </li>
                     <li onClick={() => setModalOpen(true)}>
-                        <a className="text-sm text-blue-600 font-bold" href="#">
+                        <a
+                            className={modalOpen ? "text-sm text-blue-600 font-bold" : "text-sm text-gray-400 hover:text-gray-500"}
+                        >
                             Add Admin
                         </a>
+
                     </li>
                     <li className="text-gray-300">
                         <svg
@@ -87,9 +102,17 @@ export default function Navbar() {
                         </svg>
                     </li>
                     <li>
-                        <a className="text-sm text-gray-400 hover:text-gray-500" href="#">
+                        {/* <a className="text-sm text-gray-400 hover:text-gray-500" href="#">
                             Call History
-                        </a>
+                        </a> */}
+                        <NavLink
+                            to="/callhistory"
+                            className={({ isActive }) =>
+                                isActive ? "text-sm text-blue-600 font-bold " : " text-sm text-gray-400 hover:text-gray-500"
+                            }
+                        >
+                            Call History
+                        </NavLink>
                     </li>
 
 
