@@ -1,6 +1,6 @@
 import React from 'react'
-import Loginsvg from '../../assets/login.svg';
-import Logo from '../../assets/logo.jpg'
+import Loginsvg from '../../../assets/login.svg';
+import Logo from '../../../assets/logo.jpg'
 import { useNavigate } from "react-router-dom";
 
 export default function AdminLogin() {
