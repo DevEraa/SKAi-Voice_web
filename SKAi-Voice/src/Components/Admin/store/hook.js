@@ -1,5 +1,5 @@
 import { useAdminAppService } from '../../../utils/axios';
-import toast from 'react-hot-toast';
+// import toast from 'react-hot-toast';
 
 const adminHooks = () => {
     const adminAppService = useAdminAppService();
@@ -7,7 +7,17 @@ const adminHooks = () => {
     const login = async (data) => {
         try {
             const response = await adminAppService.post('/admin/login', data);
+            console.log(response, "response in login");
+            if (response.message === "✅ Login successful!") {
+                console.log("Login successful");
+                sessionStorage.setItem('token', JSON.stringify(response));
+                sessionStorage.setItem('adminid', JSON.stringify(response.id));
+
+            } else {
+                console.log("Login failed");
+            }
             return response;
+
         } catch (error) {
             console.error(error);
             throw new Error(error);
@@ -16,7 +26,12 @@ const adminHooks = () => {
 
     const createTeamUser = async (data) => {
         try {
-            const response = await adminAppService.post('/team/create', data);
+            const adminid = JSON.parse(sessionStorage.getItem('adminid'));
+            const values = {
+                ...data,
+                admin_id: adminid
+            }
+            const response = await adminAppService.post('/team/create', values);
             return response;
         } catch (error) {
             console.error(error);

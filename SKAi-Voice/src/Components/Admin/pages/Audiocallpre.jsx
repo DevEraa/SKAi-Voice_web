@@ -5,7 +5,7 @@ import image from "../../../assets/startsession.webp";
 
 // Agora App ID
 const APP_ID = "e9d4b556259a45f18121742537c185ad";
-const API_URL = "http://localhost:3000/v1/call"; // Your backend API URL
+const API_URL = `${import.meta.env.VITE_APP_API_URL}/call`; // Your backend API URL
 
 export default function Audiocallpre() {
   const [isSessionStarted, setIsSessionStarted] = useState(false);

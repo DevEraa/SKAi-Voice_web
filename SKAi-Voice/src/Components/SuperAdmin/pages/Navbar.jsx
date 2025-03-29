@@ -11,12 +11,12 @@ export default function Navbar() {
   const [modalOpen, setModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
-    adminLimit: "",
+    adminlimits: "",
     password: "",
     confirmPassword: "",
-    appId: "",
-    tokenId: "",
-    channelId: "",
+    app_id: "",
+    token_id: "",
+    channel_name: "",
     phoneNumber: "",
     username: "",
   });
@@ -33,7 +33,7 @@ export default function Navbar() {
     try {
       const response = await createNewAdmin(formData);
       if (response.message === "✅ Admin created successfully!") {
-        alert("Admin created successfully!");
+        // alert("Admin created successfully!");
         setModalOpen(false);
       } else {
         alert(response.message);

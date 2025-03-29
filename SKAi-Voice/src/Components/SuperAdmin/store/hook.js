@@ -18,8 +18,11 @@ const superadminApp = () => {
     const createNewAdmin = async (data) => {
         try {
             const response = await adminAppService.post('/admin/create', data);
-            if (response.message === "✅ Admin created successfully") {
+            console.log(response, "response in create new admin");
+            if (response.message === "✅ Admin created successfully!") {
+                console.log("Admin created successfully");
                 toast.success("Admin created successfully");
+                listAdmin();
             }
             return response;
         } catch (error) {
@@ -29,7 +32,7 @@ const superadminApp = () => {
         }
     }
 
-    const listAdmin = async (pagesize, offset, search = '') => {
+    const listAdmin = async (pagesize = 10, offset = 0, search = '') => {
         try {
             const response = await adminAppService.get(`admin/list?pagesize=${pagesize}&offset=${offset}&search=${search}`);
             return response;

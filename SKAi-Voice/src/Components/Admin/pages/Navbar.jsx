@@ -3,6 +3,7 @@ import Logo from "../../../assets/logo.jpg";
 import { Eye, EyeOff } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import adminHooks from "../store/hook";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -12,16 +13,12 @@ const Navbar = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [conformpasswordVisible, setConformPasswordVisible] = useState(false);
-
+  const { getTeamUserById, createTeamUser } = adminHooks();
   const [formData, setFormData] = useState({
     name: "",
-    adminLimit: "",
     password: "",
     confirmPassword: "",
-    appId: "",
-    tokenId: "",
-    channelId: "",
-    phoneNumber: "",
+    mobilenumber: "",
     username: "",
   });
   useEffect(() => {
@@ -36,6 +33,34 @@ const Navbar = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
   console.log("isHovered", isHovered);
+
+  const handleSubmituser = async (e) => {
+    e.preventDefault();
+    const { name, password, confirmPassword, username, mobilenumber } =
+      formData;
+    if (name && password && confirmPassword && username && mobilenumber) {
+      if (password === confirmPassword) {
+        console.log("Form submitted:", formData);
+        try {
+          const response = await createTeamUser(formData);
+          console.log(response, "response in create new user");
+          if (response.message === "✅ User created successfully!") {
+            console.log("User created successfully");
+            alert("User created successfully");
+          }
+        } catch (error) {
+          console.error(error);
+          alert("Failed to create user");
+        }
+
+        setModalOpen(false);
+      } else {
+        alert("Passwords do not match!");
+      }
+    } else {
+      alert("Please fill in all fields!");
+    }
+  };
 
   return (
     <>
@@ -357,7 +382,7 @@ const Navbar = () => {
                 </svg>
               </button>
             </div>
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleSubmituser}>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -446,7 +471,7 @@ const Navbar = () => {
                   </label>
                   <input
                     type="text"
-                    name="phoneNumber"
+                    name="mobilenumber"
                     placeholder="Phone number"
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"

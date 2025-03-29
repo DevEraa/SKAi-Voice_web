@@ -6,10 +6,12 @@ import superadminApp from "../store/hook";
 
 export default function Login() {
   const navigate = useNavigate();
+
   const [data, setData] = React.useState({
-    email: "",
+    username: "",
     password: "",
   });
+
   const { superadminlogin } = superadminApp();
 
   const handleSubmit = async () => {
@@ -46,8 +48,8 @@ export default function Login() {
             <input
               type="email"
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm"
-              placeholder="Enter your email"
-              onChange={(e) => setData({ ...data, email: e.target.value })}
+              placeholder="Enter your username"
+              onChange={(e) => setData({ ...data, username: e.target.value })}
             />
           </div>
           <div className="mb-4">

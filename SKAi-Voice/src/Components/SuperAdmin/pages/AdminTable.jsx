@@ -210,9 +210,9 @@ export default function Table() {
                       <td className="px-6 py-4 text-sm font-medium text-gray-800">
                         {user.username}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-800">
+                      {/* <td className="px-6 py-4 text-sm text-gray-800">
                         {user.email}
-                      </td>
+                      </td> */}
                       <td className="px-6 py-4 text-center text-sm text-gray-800">
                         {user.adminlimits}
                       </td>
@@ -301,33 +301,75 @@ export default function Table() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email
+                    Username
                   </label>
                   <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    placeholder="Enter email"
+                    type="text"
+                    name="username"
+                    value={formData.username}
+                    placeholder="Username"
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Admin Limit
-                  </label>
-                  <input
-                    type="number"
-                    name="adminlimits"
-                    value={formData.adminlimits}
-                    placeholder="Set admin limit"
-                    onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      App ID
+                    </label>
+                    <input
+                      type="text"
+                      name="app_id"
+                      value={formData.app_id}
+                      placeholder="Enter app ID"
+                      onChange={handleChange}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Token ID
+                    </label>
+                    <input
+                      type="text"
+                      name="token_id"
+                      value={formData.token_id}
+                      placeholder="Token ID"
+                      onChange={handleChange}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Admin Limit
+                    </label>
+                    <input
+                      type="number"
+                      name="adminlimits"
+                      value={formData.adminlimits}
+                      placeholder="Set admin limit"
+                      onChange={handleChange}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Channel Name
+                    </label>
+                    <input
+                      type="text"
+                      name="channel_name"
+                      value={formData.channel_name}
+                      placeholder="Channel Name"
+                      onChange={handleChange}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    />
+                  </div>
+                </div>
                 <div className="relative">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Password
@@ -340,103 +382,45 @@ export default function Table() {
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all pr-10"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setPasswordVisible(!passwordVisible)}
-                    className="absolute right-3 bottom-3 text-gray-500 hover:text-gray-700 transition-colors"
-                  >
-                    {passwordVisible ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                  </button>
                 </div>
-                <div className="relative">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Confirm Password
-                  </label>
-                  <input
-                    type={conformpasswordVisible ? "text" : "password"}
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    placeholder="Confirm your password"
-                    onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setConformPasswordVisible(!conformpasswordVisible)
-                    }
-                    className="absolute right-3 bottom-3 text-gray-500 hover:text-gray-700 transition-colors"
-                  >
-                    {conformpasswordVisible ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setPasswordVisible(!passwordVisible)}
+                  className="absolute right-3 bottom-3 text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  {passwordVisible ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    App ID
-                  </label>
-                  <input
-                    type="text"
-                    name="app_id"
-                    value={formData.app_id}
-                    placeholder="Enter app ID"
-                    onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Token ID
-                  </label>
-                  <input
-                    type="text"
-                    name="token_id"
-                    value={formData.token_id}
-                    placeholder="Token ID"
-                    onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Channel Name
-                  </label>
-                  <input
-                    type="text"
-                    name="channel_name"
-                    value={formData.channel_name}
-                    placeholder="Channel Name"
-                    onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Username
-                  </label>
-                  <input
-                    type="text"
-                    name="username"
-                    value={formData.username}
-                    placeholder="Username"
-                    onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  />
-                </div>
-              </div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Confirm Password
+              </label>
+              <input
+                type={conformpasswordVisible ? "text" : "password"}
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                placeholder="Confirm your password"
+                onChange={handleChange}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all pr-10"
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  setConformPasswordVisible(!conformpasswordVisible)
+                }
+                className="absolute right-3 bottom-3 text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                {conformpasswordVisible ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
 
               <button
                 type="submit"
