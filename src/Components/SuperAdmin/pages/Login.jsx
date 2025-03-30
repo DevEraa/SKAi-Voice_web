@@ -2,44 +2,42 @@ import React from "react";
 import Loginsvg from "../../../assets/login.svg";
 import Logo from "../../../assets/logo.jpg";
 import { useNavigate } from "react-router-dom";
-import adminHooks from "../store/hook";
+import superadminApp from "../store/hook";
+import Swal from 'sweetalert2/dist/sweetalert2.js'
+import 'sweetalert2/src/sweetalert2.scss'
 
-export default function AdminLogin() {
+export default function Login() {
   const navigate = useNavigate();
-  const { login } = adminHooks();
+
   const [data, setData] = React.useState({
     username: "",
     password: "",
   });
-  const [error, setError] = React.useState("");
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  const { superadminlogin } = superadminApp();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-
-    if (!data.username || !data.password) {
-      setError("Please fill in all fields");
-      return;
-    }
-
+  const handleSubmit = async () => {
     try {
-      const success = await login(data);
-      if (success) {
-        navigate("/admindashboard");
+      const response = await superadminlogin(data);
+      console.log(response.message);
+      if (response.message == "✅ Login successful!") {
+        localStorage.setItem("token", response.token);
+        navigate("/superadmindashboard");
       } else {
-        setError("Invalid credentials");
+        Swal.fire({
+          icon: "error",
+          title: "Sorry",
+          text: response.data.message
+        });
+        // alert(response.data.message);
       }
-    } catch (err) {
-      setError("Login failed. Please try again.");
-      console.error(err);
+    } catch (error) {
+      console.log(error);
+      Swal.fire({
+        icon: "error",
+        title: "Sorry",
+        text: "Invalid Credentials !"
+      });
     }
   };
 
@@ -52,28 +50,18 @@ export default function AdminLogin() {
           Welcome Back
         </h1>
         <p className="mb-6 text-lg text-gray-600">
-          Login to your Admin account
+          Login to your Super Admin account
         </p>
-        <form
-          onSubmit={handleSubmit}
-          className="w-full max-w-sm bg-gray-50 p-6 rounded-lg shadow-2xl transform transition hover:scale-105"
-        >
-          {error && (
-            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
-              {error}
-            </div>
-          )}
+        <div className="w-full max-w-sm bg-gray-50 p-6 rounded-lg shadow-2xl transform transition hover:scale-105">
           <div className="mb-4">
             <label className="block text-gray-700 font-semibold mb-2">
               username
             </label>
             <input
               type="email"
-              name="username"
-              value={data.username}
-              onChange={handleChange}
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm"
-              placeholder="Enter your email"
+              placeholder="Enter your username"
+              onChange={(e) => setData({ ...data, username: e.target.value })}
             />
           </div>
           <div className="mb-4">
@@ -82,20 +70,19 @@ export default function AdminLogin() {
             </label>
             <input
               type="password"
-              name="password"
-              value={data.password}
-              onChange={handleChange}
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm"
               placeholder="Enter your password"
+              onChange={(e) => setData({ ...data, password: e.target.value })}
             />
           </div>
           <button
-            type="submit"
+            onClick={handleSubmit}
             className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition transform hover:scale-105 shadow-md hover:shadow-lg"
           >
             Login
           </button>
-        </form>
+          {/* <p className="mt-4 text-sm text-gray-500 text-center">Forgot password? <a href="#" className="text-blue-400 hover:underline">Reset here</a></p> */}
+        </div>
       </div>
 
       {/* Right Side - Image (Hidden on Small Screens) */}

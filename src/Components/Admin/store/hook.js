@@ -11,6 +11,9 @@ const adminHooks = () => {
             if (response.message === "✅ Login successful!") {
                 console.log("Login successful");
                 sessionStorage.setItem('token', JSON.stringify(response));
+                sessionStorage.setItem('channel_name', JSON.stringify(response.channel_name));
+                sessionStorage.setItem('app_id', JSON.stringify(response.app_id));
+                sessionStorage.setItem('app_certificate', JSON.stringify(response.token_id));
                 sessionStorage.setItem('adminid', JSON.stringify(response.id));
 
             } else {
@@ -39,16 +42,24 @@ const adminHooks = () => {
         }
     }
 
-    const listTeamUsers = async (pagesize, offset, search = '') => {
+    // const listTeamUsers = async (pagesize, offset, search = '') => {
+    //     try {
+    //         const response = await adminAppService.get(`team/list?pagesize=${pagesize}&offset=${offset}&search=${search}`);
+    //         return response;
+    //     } catch (error) {
+    //         console.error(error);
+    //         throw new Error(error);
+    //     }
+    // }
+    const listTeamUsers = async (admin, pagesize, offset, search = '') => {
         try {
-            const response = await adminAppService.get(`team/list?pagesize=${pagesize}&offset=${offset}&search=${search}`);
+            const response = await adminAppService.get(`team/getuser/${admin}?pagesize=${pagesize}&offset=${offset}&search=${search}`);
             return response;
         } catch (error) {
             console.error(error);
             throw new Error(error);
         }
     }
-
     const getTeamUserById = async (id) => {
         try {
             const response = await adminAppService.get(`/team/get/${id}`);
@@ -69,12 +80,23 @@ const adminHooks = () => {
         }
     }
 
+    const deleteuser = async (id) => {
+        try {
+            console.log("Deleting user with ID:", id);
+            const response = await adminAppService.delete(`/team/delete/${id}`);
+            return response;
+        } catch (error) {
+            console.log("error in delete user", error)
+        }
+    }
+
     return {
         login,
         createTeamUser,
         listTeamUsers,
         getTeamUserById,
-        updateTeamUser
+        updateTeamUser,
+        deleteuser
     }
 }
 

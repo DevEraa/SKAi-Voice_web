@@ -1,14 +1,20 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import logo from "../../../assets/logo.jpg";
 import { Eye, EyeOff } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import superadminApp from "../store/hook";
-export default function Navbar() {
+import Swal from "sweetalert2/dist/sweetalert2.js";
+import "sweetalert2/src/sweetalert2.scss";
+
+export default function Navbar({ setUserAdded }) {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
+  useEffect(() => {
+    setUserAdded(modalOpen);
+  }, [modalOpen]);
   const [formData, setFormData] = useState({
     name: "",
     adminlimits: "",
@@ -30,16 +36,40 @@ export default function Navbar() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log(formData);
+    if (formData.password !== formData.confirmPassword) {
+      Swal.fire({
+        icon: "error",
+        title: "Sorry",
+        text: "Password Not Match!",
+      });
+      return;
+    }
+
     try {
       const response = await createNewAdmin(formData);
       if (response.message === "✅ Admin created successfully!") {
-        // alert("Admin created successfully!");
+        Swal.fire({
+          title: "Successfull !",
+          text: "Admin created successfully",
+          icon: "success",
+        });
         setModalOpen(false);
       } else {
-        alert(response.message);
+        Swal.fire({
+          icon: "error",
+          title: "Sorry",
+          text: "Something went wrong!",
+        });
+        // alert(response.message);
       }
-    } catch (error) {
-      console.log(error);
+    } catch (errors) {
+      console.log(errors);
+      Swal.fire({
+        icon: "error",
+        title: "Sorry",
+        text: errors.message,
+      });
     }
   };
 
@@ -97,8 +127,8 @@ export default function Navbar() {
             <a
               className={
                 modalOpen
-                  ? "text-sm text-blue-600 font-bold"
-                  : "text-sm text-gray-400 hover:text-gray-500"
+                  ? "text-sm text-blue-600 font-bold cursor-pointer"
+                  : "text-sm text-gray-400 hover:text-gray-500 cursor-pointer"
               }
             >
               Add Admin
@@ -225,7 +255,7 @@ export default function Navbar() {
               </h2>
               <button
                 onClick={() => setModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1 cursor-pointer rounded-full hover:bg-gray-100"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -243,13 +273,14 @@ export default function Navbar() {
                 </svg>
               </button>
             </div>
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Name
                   </label>
                   <input
+                    required
                     type="text"
                     name="name"
                     placeholder="Enter full name"
@@ -263,6 +294,7 @@ export default function Navbar() {
                   </label>
                   <input
                     type="number"
+                    required
                     name="adminlimits"
                     placeholder="Set admin limit"
                     onChange={handleChange}
@@ -277,6 +309,7 @@ export default function Navbar() {
                     Password
                   </label>
                   <input
+                    required
                     type={passwordVisible ? "text" : "password"}
                     name="password"
                     placeholder="Create password"
@@ -286,7 +319,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setPasswordVisible(!passwordVisible)}
-                    className="absolute right-3 bottom-3 text-gray-500 hover:text-gray-700 transition-colors"
+                    className="cursor-pointer absolute right-3 bottom-3 text-gray-500 hover:text-gray-700 transition-colors"
                   >
                     {passwordVisible ? (
                       <EyeOff className="h-5 w-5" />
@@ -300,6 +333,7 @@ export default function Navbar() {
                     Confirm Password
                   </label>
                   <input
+                    required
                     type={conformpasswordVisible ? "text" : "password"}
                     name="confirmPassword"
                     placeholder="Confirm your password"
@@ -311,7 +345,7 @@ export default function Navbar() {
                     onClick={() =>
                       setConformPasswordVisible(!conformpasswordVisible)
                     }
-                    className="absolute right-3 bottom-3 text-gray-500 hover:text-gray-700 transition-colors"
+                    className="cursor-pointer absolute right-3 bottom-3 text-gray-500 hover:text-gray-700 transition-colors"
                   >
                     {conformpasswordVisible ? (
                       <EyeOff className="h-5 w-5" />
@@ -328,6 +362,7 @@ export default function Navbar() {
                     App ID
                   </label>
                   <input
+                    required
                     type="text"
                     name="app_id"
                     placeholder="Enter app ID"
@@ -337,12 +372,13 @@ export default function Navbar() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Token ID
+                    App Certificate
                   </label>
                   <input
+                    required
                     type="text"
                     name="token_id"
-                    placeholder="Token ID"
+                    placeholder="Enter app certificate"
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   />
@@ -355,6 +391,7 @@ export default function Navbar() {
                     Channel ID
                   </label>
                   <input
+                    required
                     type="text"
                     name="channel_name"
                     placeholder="Channel ID"
@@ -368,6 +405,9 @@ export default function Navbar() {
                   </label>
                   <input
                     type="text"
+                    required
+                    pattern="[0-9]*"
+                    inputMode="numeric"
                     name="phoneNumber"
                     placeholder="Phone number"
                     onChange={handleChange}
@@ -381,6 +421,7 @@ export default function Navbar() {
                   Username
                 </label>
                 <input
+                  required
                   type="text"
                   name="username"
                   placeholder="Username"
@@ -391,8 +432,7 @@ export default function Navbar() {
 
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg active:scale-95 transform mt-4"
-                onClick={handleSubmit}
+                className="cursor-pointer w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg active:scale-95 transform mt-4"
               >
                 Add Admin
               </button>

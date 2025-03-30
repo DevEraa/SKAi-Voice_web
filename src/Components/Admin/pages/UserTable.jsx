@@ -11,11 +11,12 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import adminHooks from "../store/hook";
+import Navbar from './Navbar';
 
 export default function UserTable() {
   const navigate = useNavigate();
 
-  const { listTeamUsers, getTeamUserById, createTeamUser } = adminHooks();
+  const { listTeamUsers, getTeamUserById, createTeamUser, deleteuser, updateTeamUser } = adminHooks();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,23 +24,35 @@ export default function UserTable() {
   const recordsPerPage = 10;
   const [totalCount, setTotalCount] = useState(0);
 
+  const [deletepopup, setDeletepopup] = useState(false);
+
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [conformpasswordVisible, setConformPasswordVisible] = useState(false);
 
   const [users, setUsers] = useState([]);
+  const [selecteduser, setselecteduser] = useState();
+  const [Logadminid, setLogadminid] = useState('');
 
   console.log(users, "user");
+  useEffect(() => {
+    setLogadminid(localStorage.getItem("admin_id"));
+  }, [currentPage]);
 
   useEffect(() => {
     fetchlist();
-  }, [currentPage]);
+
+  }, [currentPage, Logadminid]);
 
   const fetchlist = async () => {
+    console.log("Logadminid",Logadminid)
     try {
+    
       const pagesize = recordsPerPage;
       const offset = (currentPage - 1) * recordsPerPage; // Calculate offset based on current page
-      const response = await listTeamUsers(pagesize, offset);
+      const response = await listTeamUsers(Logadminid, pagesize, offset);
       setUsers(response);
+      console.log("response",response.length);
+      localStorage.setItem("totaluser",response.length)
 
       // If API returns total count, use it
       if (response.totalCount) {
@@ -68,19 +81,54 @@ export default function UserTable() {
 
   const [formData, setFormData] = useState({
     name: "",
-    password: "",
-    confirmPassword: "",
     mobilenumber: "",
     username: "",
+    tokenid: "",
+    Channelid: "",
+    mobilenumber: "",
   });
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const [deletepopup, setDeletepopup] = useState(false);
-  console.log("deletepopup", deletepopup);
+  useEffect(() => {
+    if (selecteduser) {
+      setFormData({
+        name: selecteduser.name || "",
+        mobilenumber: selecteduser.mobilenumber || "",
+        username: selecteduser.username || "",
+        tokenid: selecteduser.tokenid,
+        Channelid: selecteduser.Channelid,
+      });
+    }
+  }, [selecteduser]);
+
+  const handleConfirmDelete = async () => {
+    const response = await deleteuser(selecteduser.id); // ✅ Await the response
+    console.log("Delete response:", response);
+    fetchlist();
+    setDeletepopup(false);
+  };
+
+  console.log("selecteduser", selecteduser); // ✅ This should now log the correct user ID
+  const updateuser = async (e) => {
+    e.preventDefault();
+    console.log("selecteduser", selecteduser);
+    console.log("formData", formData);
+    const response = await updateTeamUser(selecteduser.id, formData); // ✅ Await the response
+    console.log("UPdate response:", response);
+    fetchlist();
+    setModalOpen(false);
+  }
+  const [usermodalOpen, setuserModalOpen] = useState(false);
+
+  useEffect(() => {
+    console.log("userModalOpen changed:", usermodalOpen);
+    fetchlist();
+  }, [usermodalOpen]);
   return (
     <>
+      <Navbar usermodalOpen={usermodalOpen} setuserModalOpen={setuserModalOpen} />
       <div className="container mx-auto p-3 md:w-4/5 w-full">
         <div className="flex items-center justify-between mb-4">
           <div className="relative md:w-1/3 w-full">
@@ -146,16 +194,24 @@ export default function UserTable() {
                       </td>
                       <td className="px-6 py-4 text-center">
                         <button
-                          onClick={() => setModalOpen(true)}
-                          className="text-yellow-500 hover:text-yellow-700 transition"
+                          onClick={() => {
+                            setselecteduser(user); // ✅ Set selected user ID
+                            setModalOpen(true);
+                          }}
+
+                          className="cursor-pointer text-yellow-500 hover:text-yellow-700 transition"
                         >
                           <Edit size={20} />
                         </button>
                       </td>
                       <td className="px-6 py-4 text-center">
                         <button
-                          onClick={() => setDeletepopup(!deletepopup)}
-                          className="text-red-500 hover:text-red-700 transition"
+                          // onClick={() => setDeletepopup(!deletepopup)}
+                          onClick={() => {
+                            setselecteduser(user);
+                            setDeletepopup(true);
+                          }}
+                          className="cursor-pointer text-red-500 hover:text-red-700 transition"
                         >
                           <Trash2 size={20} />
                         </button>
@@ -213,8 +269,9 @@ export default function UserTable() {
                 </svg>
               </button>
             </div>
-            <form className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+
+            <form className="space-y-4" onSubmit={updateuser}>
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Name
@@ -222,11 +279,25 @@ export default function UserTable() {
                   <input
                     type="text"
                     name="name"
+                    value={formData.name}
                     placeholder="Enter full name"
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   />
                 </div>
+                {/* <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Token ID
+                  </label>
+                  <input
+                    type="text"
+                    name="tokenid"
+                    value={formData.tokenid}
+                    placeholder="Enter Token ID"
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  />
+                </div> */}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -237,6 +308,7 @@ export default function UserTable() {
                   <input
                     type={passwordVisible ? "text" : "password"}
                     name="password"
+                    
                     placeholder="Create password"
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all pr-10"
@@ -260,6 +332,7 @@ export default function UserTable() {
                   <input
                     type={conformpasswordVisible ? "text" : "password"}
                     name="confirmPassword"
+                  
                     placeholder="Confirm password"
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all pr-10"
@@ -280,40 +353,68 @@ export default function UserTable() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Username
                   </label>
                   <input
                     type="text"
+                    value={formData.username}
                     name="username"
                     placeholder="Username"
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   />
                 </div>
+                {/* <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Channel ID
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.Channelid}
+                    name="Channelid"
+                    placeholder="Channel ID"
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  />
+                </div> */}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Phone Number
                   </label>
                   <input
-                    type="text"
-                    name="phoneNumber"
+                    type="number"
+                    value={formData.mobilenumber}
+                    name="mobilenumber"
                     placeholder="Phone number"
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   />
                 </div>
+                {/* <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    App ID
+                  </label>
+                  <input
+                    type="text"
+                    name="appid"
+
+                    placeholder="App ID"
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  />
+                </div> */}
               </div>
               <button
                 type="submit"
                 className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg active:scale-95 transform mt-4"
               >
-                Update User
+                Add User
               </button>
             </form>
           </div>
@@ -370,7 +471,7 @@ export default function UserTable() {
                 </p>
                 <div className="flex justify-center space-x-4">
                   <button
-                    // onClick={handleConfirmDelete}
+                    onClick={handleConfirmDelete}
                     className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
                   >
                     Delete Permanently

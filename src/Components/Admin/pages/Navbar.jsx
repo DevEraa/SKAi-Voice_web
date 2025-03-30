@@ -4,8 +4,10 @@ import { Eye, EyeOff } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import adminHooks from "../store/hook";
+import Swal from "sweetalert2/dist/sweetalert2.js";
+import "sweetalert2/src/sweetalert2.scss";
 
-const Navbar = () => {
+const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -14,13 +16,32 @@ const Navbar = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [conformpasswordVisible, setConformPasswordVisible] = useState(false);
   const { getTeamUserById, createTeamUser } = adminHooks();
+
+  const [Logusername, setLogUsername] = useState("");
+  const [Loguseremail, setLoguseremail] = useState("");
+  const [Loguserlimit, setLoguserlimit] = useState("");
+  const [Logadminid, setLogadminid] = useState("");
+  const [Totaluser, setTotaluser] = useState(0);
+  const [Adminlimitpopup, setAdminlimitpopup] = useState(false);
+
   const [formData, setFormData] = useState({
     name: "",
     password: "",
     confirmPassword: "",
     mobilenumber: "",
     username: "",
+    createdby: Logadminid,
   });
+
+  useEffect(() => {
+    setLogUsername(localStorage.getItem("admin_name"));
+    setLoguseremail(localStorage.getItem("admin_email"));
+    setLoguserlimit(localStorage.getItem("admin_limit"));
+    setLogadminid(localStorage.getItem("admin_id"));
+    setTotaluser(localStorage.getItem("totaluser"));
+    setFormData({ ...formData, createdby: localStorage.getItem("admin_id") });
+  }, []);
+
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth > 768) setIsMenuOpen(false);
@@ -32,33 +53,58 @@ const Navbar = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-  console.log("isHovered", isHovered);
 
   const handleSubmituser = async (e) => {
     e.preventDefault();
+
+    if (Loguserlimit <= Totaluser) {
+      console.log("Loguserlimit", Loguserlimit, "Totaluser", Totaluser);
+      setAdminlimitpopup(true);
+      console.log("limit exit");
+      return;
+    }
+
     const { name, password, confirmPassword, username, mobilenumber } =
       formData;
     if (name && password && confirmPassword && username && mobilenumber) {
       if (password === confirmPassword) {
         console.log("Form submitted:", formData);
         try {
+          console.log("form data", formData);
           const response = await createTeamUser(formData);
           console.log(response, "response in create new user");
-          if (response.message === "✅ User created successfully!") {
+          if (response.message === "✅ Team created successfully!") {
             console.log("User created successfully");
-            alert("User created successfully");
+            Swal.fire({
+              title: "Good job!",
+              text: "User Added Successfuly!",
+              icon: "success",
+            });
           }
         } catch (error) {
-          console.error(error);
-          alert("Failed to create user");
+          console.error(error.message);
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: error.message,
+          });
         }
 
         setModalOpen(false);
+        setuserModalOpen((prev) => !prev);
       } else {
-        alert("Passwords do not match!");
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Password Does Not Match",
+        });
       }
     } else {
-      alert("Please fill in all fields!");
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "All Fields are Required",
+      });
     }
   };
 
@@ -149,8 +195,11 @@ const Navbar = () => {
 
               {/* New Job Button - Desktop */}
               <button
-                onClick={() => setModalOpen(true)}
-                className="hidden md:inline-flex items-center bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                onClick={() => {
+                  setModalOpen(true);
+                  setuserModalOpen((prev) => !prev);
+                }}
+                className="cursor-pointer hidden md:inline-flex items-center bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 + New User
               </button>
@@ -161,11 +210,11 @@ const Navbar = () => {
                 onClick={() => setactivecard(!activecard)}
               >
                 <img
-                  src="https://www.gravatar.com/avatar/2c7d99fe281ecd3bcd65ab915bac6dd5?s=250"
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqf0Wx4wmsKfLYsiLdBx6H4D8bwQBurWhx5g&s"
                   alt="User profile"
                   className="h-8 w-8 rounded-full"
                 />
-                <span className="text-gray-600 text-sm">Mr. Rahul Patil</span>
+                <span className="text-gray-600 text-sm">{Logusername}</span>
               </div>
 
               {/* Mobile Menu Button */}
@@ -226,8 +275,11 @@ const Navbar = () => {
                 Call Log
               </NavLink>
               <button
-                onClick={() => setModalOpen(true)}
-                className="w-full my-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-base font-medium transition-colors"
+                onClick={() => {
+                  setModalOpen(true);
+                  setuserModalOpen((prev) => !prev);
+                }}
+                className="cursor-pointer w-full my-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-base font-medium transition-colors"
               >
                 + New User
               </button>
@@ -237,11 +289,11 @@ const Navbar = () => {
                 onClick={() => setactivecard(!activecard)}
               >
                 <img
-                  src="https://www.gravatar.com/avatar/2c7d99fe281ecd3bcd65ab915bac6dd5?s=250"
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqf0Wx4wmsKfLYsiLdBx6H4D8bwQBurWhx5g&s"
                   alt="User profile"
                   className="h-8 w-8 rounded-full"
                 />
-                <span className="text-gray-600 text-sm">Mr. Rahul Patil</span>
+                <span className="text-gray-600 text-sm">{Logusername}</span>
               </div>
             </div>
           )}
@@ -255,7 +307,7 @@ const Navbar = () => {
             <div className="px-6 py-4">
               <div className="flex flex-col items-start space-y-2">
                 <h3 className="text-2xl font-bold text-blue-500">
-                  Mr. Rahul Patil
+                  {Logusername}
                 </h3>
                 <span className="px-3 py-1 rounded-full bg-white/20 text-sm text-blue-500 font-medium tracking-wide">
                   Admin
@@ -278,7 +330,8 @@ const Navbar = () => {
                     />
                   </svg>
                   <span className="text-gray-700 font-medium">
-                    ritika@deveraa.com
+                    {/* {Loguseremail === null ? "Not Added" : Loguseremail } */}
+                    {Loguseremail != "null" ? Loguseremail : "Not Added"}
                   </span>
                 </div>
 
@@ -297,11 +350,12 @@ const Navbar = () => {
                     />
                   </svg>
                   <span className="text-gray-700 font-medium">
-                    10 Users Limit
+                    {Loguserlimit != null ? Loguserlimit + " " : "Not Added"}
+                    Users Limit
                   </span>
                 </div>
 
-                <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg transition-colors">
+                {/* <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg transition-colors">
                   <svg
                     className="w-6 h-6 text-gray-600"
                     fill="none"
@@ -318,7 +372,7 @@ const Navbar = () => {
                   <span className="text-gray-700 font-medium">
                     +977 9955221114
                   </span>
-                </div>
+                </div> */}
               </div>
 
               {/* Action Buttons */}
@@ -363,8 +417,11 @@ const Navbar = () => {
             <div className="flex justify-between items-center pb-4 mb-4 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-800">Add New User</h2>
               <button
-                onClick={() => setModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
+                onClick={() => {
+                  setModalOpen(false);
+                  setuserModalOpen((prev) => !prev);
+                }}
+                className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -391,11 +448,26 @@ const Navbar = () => {
                   <input
                     type="text"
                     name="name"
+                    required
                     placeholder="Enter full name"
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   />
                 </div>
+                {/* <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Token ID
+                  </label>
+                  <input
+                    type="password"
+                    name="tokenid"
+                    readOnly
+                    value="TokenID"
+                    placeholder="Enter Token ID"
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  />
+                </div> */}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -406,6 +478,7 @@ const Navbar = () => {
                   <input
                     type={passwordVisible ? "text" : "password"}
                     name="password"
+                    required
                     placeholder="Create password"
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all pr-10"
@@ -413,7 +486,7 @@ const Navbar = () => {
                   <button
                     type="button"
                     onClick={() => setPasswordVisible(!passwordVisible)}
-                    className="absolute right-3 bottom-3 text-gray-500 hover:text-gray-700 transition-colors"
+                    className=" cursor-pointer absolute right-3 bottom-3 text-gray-500 hover:text-gray-700 transition-colors"
                   >
                     {passwordVisible ? (
                       <EyeOff className="h-5 w-5" />
@@ -429,6 +502,7 @@ const Navbar = () => {
                   <input
                     type={conformpasswordVisible ? "text" : "password"}
                     name="confirmPassword"
+                    required
                     placeholder="Confirm password"
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all pr-10"
@@ -438,7 +512,7 @@ const Navbar = () => {
                     onClick={() =>
                       setConformPasswordVisible(!conformpasswordVisible)
                     }
-                    className="absolute right-3 bottom-3 text-gray-500 hover:text-gray-700 transition-colors"
+                    className="cursor-pointer absolute right-3 bottom-3 text-gray-500 hover:text-gray-700 transition-colors"
                   >
                     {conformpasswordVisible ? (
                       <EyeOff className="h-5 w-5" />
@@ -456,8 +530,23 @@ const Navbar = () => {
                   </label>
                   <input
                     type="text"
+                    required
                     name="username"
                     placeholder="Username"
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Channel ID
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value="ChannelID"
+                    name="Channelid"
+                    placeholder="Channel ID"
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   />
@@ -471,8 +560,25 @@ const Navbar = () => {
                   </label>
                   <input
                     type="text"
+                    required
                     name="mobilenumber"
+                    pattern="[0-9]*"
+                    inputMode="numeric"
                     placeholder="Phone number"
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    App ID
+                  </label>
+                  <input
+                    type="password"
+                    name="appid"
+                    readOnly
+                    value="appid"
+                    placeholder="App ID"
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   />
@@ -480,11 +586,54 @@ const Navbar = () => {
               </div>
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg active:scale-95 transform mt-4"
+                className="cursor-pointer w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg active:scale-95 transform mt-4"
               >
                 Add User
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {Adminlimitpopup && (
+        <div
+          id="popup-modal"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm animate-fadeIn"
+        >
+          <div className="relative p-4 w-full max-w-md">
+            <div className="relative bg-white rounded-lg shadow-lg">
+              <div
+                onClick={() => setAdminlimitpopup(false)}
+                className="p-6 text-center"
+              >
+                <svg
+                  className="mx-auto mb-4 text-red-600 w-14 h-14"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+                <h3 className="mb-4 text-xl font-semibold text-gray-800">
+                  User Limit Reached
+                </h3>
+                <p className="mb-6 text-gray-600">
+                  You have reached your limit to create a user. Please contact
+                  your SuperUser.
+                </p>
+                <button
+                  onClick={() => setAdminlimitpopup(false)}
+                  className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                >
+                  OK
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
