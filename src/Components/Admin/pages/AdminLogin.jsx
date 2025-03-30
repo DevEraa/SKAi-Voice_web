@@ -38,8 +38,11 @@ export default function AdminLogin() {
       localStorage.setItem("admin_id",success?.username );
       localStorage.setItem("admin_limit",success?.adminlimits );
       localStorage.setItem("admin_email",success?.email );
-      if (success) {
+      localStorage.setItem("admin_id",success?.id );
+      if (success.message === "✅ Login successful!") {
         navigate("/admindashboard");
+      }if(success.message === "Your are Lock, Contact your Superadmin"){
+        setError("Your are Lock, Contact your Superadmin");
       } else {
         setError("Invalid credentials");
       }

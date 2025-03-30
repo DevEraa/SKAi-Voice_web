@@ -632,12 +632,8 @@ export default function Table() {
                     : "Lock Admin Access"}
                 </h3>
                 <p className="mb-6 text-gray-600">
-                  Are you sure you want to{" "}
-                  {!userToToggle?.lcokstatus ? "unlock" : "lock"} the admin{" "}
-                  <span className="font-semibold">
-                    {!userToToggle?.lcokstatus}
-                  </span>
-                  ?
+                  Are you sure you want to {!userToToggle?.lcokstatus ? "unlock" : "lock"} the User{" "}
+                  <span className="font-semibold">{!userToToggle?.lcokstatus}</span>?
                 </p>
                 <div className="flex justify-center space-x-4">
                   <button

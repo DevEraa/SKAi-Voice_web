@@ -4,18 +4,24 @@ import { Eye, EyeOff } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import adminHooks from "../store/hook";
-import Swal from "sweetalert2/dist/sweetalert2.js";
-import "sweetalert2/src/sweetalert2.scss";
+import Swal from 'sweetalert2/dist/sweetalert2.js'
+import 'sweetalert2/src/sweetalert2.scss';
+import superadminApp from "../../SuperAdmin/store/hook";
+
 
 const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
   const navigate = useNavigate();
+
+
+  const { updateAdmin } = superadminApp();
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [activecard, setactivecard] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [conformpasswordVisible, setConformPasswordVisible] = useState(false);
-  const { getTeamUserById, createTeamUser } = adminHooks();
+  const { getTeamUserById, createTeamUser, updateTeamUser } = adminHooks();
 
   const [Logusername, setLogUsername] = useState("");
   const [Loguseremail, setLoguseremail] = useState("");
@@ -23,6 +29,10 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
   const [Logadminid, setLogadminid] = useState("");
   const [Totaluser, setTotaluser] = useState(0);
   const [Adminlimitpopup, setAdminlimitpopup] = useState(false);
+  const [Logoutpopup, setlogoutpopup] = useState(false)
+  const [Passwordresetpopup, setPasswordresetpopup] = useState(false);
+  const [Adminid, setAdminid] = useState();
+
 
   const [formData, setFormData] = useState({
     name: "",
@@ -31,6 +41,7 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
     mobilenumber: "",
     username: "",
     createdby: Logadminid,
+    Channelid: "Channelid"
   });
 
   useEffect(() => {
@@ -39,6 +50,7 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
     setLoguserlimit(localStorage.getItem("admin_limit"));
     setLogadminid(localStorage.getItem("admin_id"));
     setTotaluser(localStorage.getItem("totaluser"));
+    setAdminid(localStorage.getItem("admin_id"))
     setFormData({ ...formData, createdby: localStorage.getItem("admin_id") });
   }, []);
 
@@ -54,32 +66,99 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // const handleSubmituser = async (e) => {
+  //   e.preventDefault();
+  //   console.log("form data")
+  //   if (Totaluser >= Loguserlimit) {
+  //     console.log("Loguserlimit:", Loguserlimit, "Totaluser:", Totaluser);
+  //     setAdminlimitpopup(true);
+  //     console.log("Limit exceeded: Cannot create more users.");
+  //     return;
+  //   }
+
+
+  //   const { name, password, confirmPassword, username, mobilenumber, } = formData;
+  //   console.log("form data", formData)
+  //   if (name && password && confirmPassword && username) {
+  //     if (password === confirmPassword) {
+  //       console.log("Form submitted:", formData);
+  //       try {
+  //         console.log("form data", formData)
+  //         const response = await createTeamUser(formData);
+  //         console.log(response, "response in create new user");
+  //         if (response.message === "✅ Team created successfully!") {
+  //           console.log("User created successfully");
+  //           Swal.fire({
+  //             title: "Successfuly!",
+  //             text: "User Added Successfuly!",
+  //             icon: "success"
+  //           });
+  //           setTotaluser(localStorage.getItem("totaluser"));
+  //         }
+  //       } catch (error) {
+  //         console.error(error.message);
+  //         Swal.fire({
+  //           icon: "error",
+  //           title: "Oops...",
+  //           text: error.message
+  //         });
+  //       }
+
+  //       setModalOpen(false);
+  //       setuserModalOpen(prev => !prev)
+  //     } else {
+  //       Swal.fire({
+  //         icon: "error",
+  //         title: "Oops...",
+  //         text: "Password Does Not Match"
+  //       });
+  //     }
+  //   } else {
+  //     Swal.fire({
+  //       icon: "error",
+  //       title: "Oops...",
+  //       text: "All Fields are Required"
+  //     });
+  //   }
+  // };
   const handleSubmituser = async (e) => {
     e.preventDefault();
+    console.log("Form data submitted");
 
-    if (Loguserlimit <= Totaluser) {
-      console.log("Loguserlimit", Loguserlimit, "Totaluser", Totaluser);
+    // Ensure Totaluser is correctly fetched from local storage or state
+    const currentTotalUsers = parseInt(localStorage.getItem("totaluser")) || Totaluser;
+
+    if (currentTotalUsers >= Loguserlimit) {
+      console.log("Loguserlimit:", Loguserlimit, "Totaluser:", currentTotalUsers);
       setAdminlimitpopup(true);
-      console.log("limit exit");
+      console.log("Limit exceeded: Cannot create more users.");
       return;
     }
 
-    const { name, password, confirmPassword, username, mobilenumber } =
-      formData;
-    if (name && password && confirmPassword && username && mobilenumber) {
+    const { name, password, confirmPassword, username, mobilenumber } = formData;
+
+    if (name && password && confirmPassword && username) {
       if (password === confirmPassword) {
         console.log("Form submitted:", formData);
         try {
-          console.log("form data", formData);
           const response = await createTeamUser(formData);
-          console.log(response, "response in create new user");
+          console.log(response, "Response in create new user");
+
           if (response.message === "✅ Team created successfully!") {
             console.log("User created successfully");
             Swal.fire({
-              title: "Good job!",
-              text: "User Added Successfuly!",
-              icon: "success",
+              title: "Success!",
+              text: "User Added Successfully!",
+              icon: "success"
             });
+
+            // Update Totaluser in state and local storage
+            const updatedTotalUsers = currentTotalUsers + 1;
+            setTotaluser(updatedTotalUsers);
+            localStorage.setItem("totaluser", updatedTotalUsers);
+
+            setModalOpen(false);
+            setuserModalOpen(prev => !prev);
           }
         } catch (error) {
           console.error(error.message);
@@ -89,9 +168,6 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
             text: error.message,
           });
         }
-
-        setModalOpen(false);
-        setuserModalOpen((prev) => !prev);
       } else {
         Swal.fire({
           icon: "error",
@@ -107,6 +183,26 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
       });
     }
   };
+
+
+  const [Passwordreset, setPasswordreset] = useState({
+    password: '',
+    conformpassword: ''
+  })
+  const handlePasswordReset = async () => {
+    console.log("Adminid", Adminid)
+
+    const updatepassword = { password: Passwordreset.password };
+    console.log("Passwordreset", updatepassword);
+    const request = await updateAdmin(Adminid, updatepassword);
+    console.log(request)
+    setPasswordresetpopup(false);
+    Swal.fire({
+      title: "Successfuly!",
+      text: "Password Reset Successfuly!",
+      icon: "success"
+    });
+  }
 
   return (
     <>
@@ -195,10 +291,7 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
 
               {/* New Job Button - Desktop */}
               <button
-                onClick={() => {
-                  setModalOpen(true);
-                  setuserModalOpen((prev) => !prev);
-                }}
+                onClick={() => { setModalOpen(true); setuserModalOpen(prev => !prev) }}
                 className="cursor-pointer hidden md:inline-flex items-center bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 + New User
@@ -275,10 +368,7 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
                 Call Log
               </NavLink>
               <button
-                onClick={() => {
-                  setModalOpen(true);
-                  setuserModalOpen((prev) => !prev);
-                }}
+                onClick={() => { setModalOpen(true); setuserModalOpen(prev => !prev) }}
                 className="cursor-pointer w-full my-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-base font-medium transition-colors"
               >
                 + New User
@@ -331,7 +421,8 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
                   </svg>
                   <span className="text-gray-700 font-medium">
                     {/* {Loguseremail === null ? "Not Added" : Loguseremail } */}
-                    {Loguseremail != "null" ? Loguseremail : "Not Added"}
+                    {Logadminid}
+
                   </span>
                 </div>
 
@@ -378,7 +469,7 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
               {/* Action Buttons */}
               <div className="mt-8 space-y-4">
                 <button
-                  onClick={() => navigate("/adminlogin")}
+                  onClick={() => setlogoutpopup(true)}
                   className="w-full flex items-center justify-center space-x-2 py-3 px-6 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
                 >
                   <svg
@@ -399,7 +490,7 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
 
                 <div className="text-center pt-2">
                   <a
-                    href="#"
+                    onClick={() => setPasswordresetpopup(true)}
                     className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors duration-300 hover:underline"
                   >
                     Forgot Password?
@@ -417,10 +508,7 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
             <div className="flex justify-between items-center pb-4 mb-4 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-800">Add New User</h2>
               <button
-                onClick={() => {
-                  setModalOpen(false);
-                  setuserModalOpen((prev) => !prev);
-                }}
+                onClick={() => { setModalOpen(false); setuserModalOpen(prev => !prev) }}
                 className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
               >
                 <svg
@@ -450,6 +538,21 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
                     name="name"
                     required
                     placeholder="Enter full name"
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Phone Number
+                  </label>
+                  <input
+                    type="text"
+
+                    name="mobilenumber"
+                    pattern="[0-9]*"
+                    inputMode="numeric"
+                    placeholder="Phone number"
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   />
@@ -554,22 +657,8 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone Number
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    name="mobilenumber"
-                    pattern="[0-9]*"
-                    inputMode="numeric"
-                    placeholder="Phone number"
-                    onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  />
-                </div>
-                <div>
+
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     App ID
                   </label>
@@ -582,7 +671,7 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   />
-                </div>
+                </div> */}
               </div>
               <button
                 type="submit"
@@ -602,10 +691,7 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
         >
           <div className="relative p-4 w-full max-w-md">
             <div className="relative bg-white rounded-lg shadow-lg">
-              <div
-                onClick={() => setAdminlimitpopup(false)}
-                className="p-6 text-center"
-              >
+              <div onClick={() => setAdminlimitpopup(false)} className="p-6 text-center">
                 <svg
                   className="mx-auto mb-4 text-red-600 w-14 h-14"
                   fill="none"
@@ -626,8 +712,7 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
                   You have reached your limit to create a user. Please contact
                   your SuperUser.
                 </p>
-                <button
-                  onClick={() => setAdminlimitpopup(false)}
+                <button onClick={() => setAdminlimitpopup(false)}
                   className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
                 >
                   OK
@@ -637,6 +722,126 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
           </div>
         </div>
       )}
+
+      {Logoutpopup && (
+        <div
+          id="logout-modal"
+          tabIndex={-1}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm animate-fadeIn"
+        >
+          <div className="relative p-4 w-full max-w-md">
+            <div className="relative bg-white rounded-lg shadow-lg">
+              <button
+                type="button"
+                className="cursor-pointer absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
+                onClick={() => setlogoutpopup(false)}
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+              <div className="p-6 text-center">
+                <h3 className="mb-4 text-xl font-semibold text-gray-800">
+                  Do you want to logout?
+                </h3>
+                <div className="flex justify-center space-x-4">
+                  <button
+                    className="cursor-pointer px-6 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors"
+                    onClick={() => navigate("/adminlogin")} // Call your logout function
+                  >
+                    Yes
+                  </button>
+                  <button
+                    onClick={() => setlogoutpopup(false)}
+                    className="cursor-pointer px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      )}
+
+      {Passwordresetpopup && (
+        <div
+          id="password-reset-modal"
+          tabIndex={-1}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm animate-fadeIn"
+        >
+          <div className="relative p-4 w-full max-w-md">
+            <div className="relative bg-white rounded-lg shadow-lg">
+              <button
+                type="button"
+                className="cursor-pointer absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
+                onClick={() => setPasswordresetpopup(false)}
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+              <div className="p-6 text-center">
+                <h3 className="mb-4 text-xl font-semibold text-gray-800">
+                  Reset Password
+                </h3>
+                <div className="mb-4">
+                  <input
+                    type="password"
+                    onChange={(e) => setPasswordreset({ ...Passwordreset, password: e.target.value })}
+                    placeholder="New Password"
+                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="mb-6">
+                  <input
+                    type="password"
+                    onChange={(e) => setPasswordreset({ ...Passwordreset, conformpassword: e.target.value })}
+                    placeholder="Confirm New Password"
+                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="flex justify-center space-x-4">
+                  <button
+                    className="cursor-pointer px-6 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+                    onClick={handlePasswordReset} // Call your reset function
+                  >
+                    Reset Password
+                  </button>
+                  <button
+                    onClick={() => setPasswordresetpopup(false)}
+                    className="cursor-pointer px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </>
   );
 };
