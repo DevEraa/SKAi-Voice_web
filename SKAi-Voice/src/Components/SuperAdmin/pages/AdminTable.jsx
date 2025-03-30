@@ -187,9 +187,7 @@ export default function Table() {
                     <th className="px-6 py-3 text-start text-sm font-semibold">
                       Username
                     </th>
-                    <th className="px-6 py-3 text-start text-sm font-semibold">
-                      Email
-                    </th>
+
                     <th className="px-6 py-3 text-center text-sm font-semibold">
                       Admin Limits
                     </th>
@@ -210,9 +208,7 @@ export default function Table() {
                       <td className="px-6 py-4 text-sm font-medium text-gray-800">
                         {user.username}
                       </td>
-                      {/* <td className="px-6 py-4 text-sm text-gray-800">
-                        {user.email}
-                      </td> */}
+
                       <td className="px-6 py-4 text-center text-sm text-gray-800">
                         {user.adminlimits}
                       </td>
@@ -326,7 +322,7 @@ export default function Table() {
                     />
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
