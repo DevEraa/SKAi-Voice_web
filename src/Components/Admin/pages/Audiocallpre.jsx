@@ -3,6 +3,7 @@ import AgoraRTC from "agora-rtc-sdk-ng";
 import axios from "axios";
 import image from "../../../assets/startsession.webp";
 
+
 // Agora App ID\
 
 const APP_ID = sessionStorage.getItem("app_id"); // Your Agora App ID
@@ -21,9 +22,9 @@ export default function Audiocallpre() {
   const [error, setError] = useState("");
   const [left, setLeft] = useState(false);
   const adminname = localStorage.getItem("admin_name");
-  const channelNameis = sessionStorage
-    .getItem("channel_name")
-    .replace(/"/g, "");
+  const channelNameis = sessionStorage.getItem("channel_name")
+    ? sessionStorage.getItem("channel_name").replace(/"/g, "")
+    : "";
   // console.log("channelNameis", channelNameis);
 
   const client = useRef(null);
@@ -256,6 +257,42 @@ export default function Audiocallpre() {
     }
   };
 
+  // New function to kick a participant from the session
+  const kickParticipant = async (uid) => {
+    try {
+      // Check if the current user is the admin
+      const isAdmin = participants.find((p) => p.isLocal)?.isAdmin === true;
+
+      if (!isAdmin) {
+        console.error("Only admin can kick participants");
+        return;
+      }
+
+      // Implement API call to kick participant
+      await axios.post(`${API_URL}/meetings/kick-participant`, {
+        channelName: channelNameis,
+        participantUid: uid,
+        adminUid: localUidRef.current,
+      });
+
+      // Remove participant from local state
+      setParticipants((prev) => prev.filter((p) => p.uid !== uid));
+
+      // Clean up any references to the participant
+      if (remoteUserAudioStates.current[uid]) {
+        delete remoteUserAudioStates.current[uid];
+      }
+
+      if (userNamesRef.current[uid]) {
+        delete userNamesRef.current[uid];
+      }
+
+      console.log(`Participant ${uid} has been kicked`);
+    } catch (error) {
+      console.error("Error kicking participant:", error);
+    }
+  };
+
   return (
     <div className="w-full md:w-5/6 h-[70vh] mx-auto my-16 bg-white rounded-xl overflow-hidden transition-all duration-300 shadow-2xl flex flex-col">
       {!isSessionStarted ? (
@@ -285,148 +322,143 @@ export default function Audiocallpre() {
         </>
       ) : (
         /* Meeting View */
-        <div className="flex-1 flex flex-col p-8 bg-blue-300">
-          {/* Meeting Header */}
-          <div className="mb-4 text-center">
-            <h2 className="text-xl font-bold text-white">{meetingName}</h2>
-            <p className="text-blue-100">Active Call</p>
-            <p className="text-blue-100">Channel: {channelName}</p>
+        <>
+          <div className="flex space-x-4 w-full justify-center">
+            <button
+              onClick={toggleMute}
+              className={`p-3 rounded-full ${
+                isMuted
+                  ? "bg-red-500 hover:bg-red-600"
+                  : "bg-blue-500 hover:bg-blue-600"
+              } transition-colors duration-200`}
+            >
+              {isMuted ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-mic-off"
+                >
+                  <line x1="2" x2="22" y1="2" y2="22" />
+                  <path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2" />
+                  <path d="M5 10v2a7 7 0 0 0 12 5" />
+                  <path d="M15 9.34V5a3 3 0 0 0-5.68-1.33" />
+                  <path d="M9 9v3a3 3 0 0 0 5.12 2.12" />
+                  <line x1="12" x2="12" y1="19" y2="22" />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-mic"
+                >
+                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  <line x1="12" x2="12" y1="19" y2="22" />
+                </svg>
+              )}
+            </button>
+
+            <button
+              className="bg-blue-100 hover:bg-blue-200 p-3 rounded-full transition-colors duration-200"
+              onClick={() => {
+                console.log("Ending session...");
+                cleanupSession();
+              }}
+            >
+              leave
+            </button>
           </div>
-
-          {/* Participants Section */}
-          <div className="flex flex-row overflow-x-auto gap-5 justify-center">
-            {/* Local User */}
-            <div className="bg-white rounded-2xl shadow-lg p-6 w-80 transition-all duration-300 hover:shadow-xl border border-blue-100">
-              <div className="flex flex-col items-center space-y-4">
-                {/* Profile Initial */}
-                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-3xl font-bold text-blue-500">
-                    {adminname.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-
-                {/* Profile Info */}
-                <div className="text-center">
-                  <h2 className="text-xl font-semibold text-gray-800">
-                    {adminname}
-                  </h2>
-                  <p className="text-sm text-gray-500">Admin (You)</p>
-                </div>
-
-                {/* Audio Controls */}
-                <div className="flex space-x-4 w-full justify-center">
-                  <button
-                    onClick={toggleMute}
-                    className={`p-3 rounded-full ${
-                      isMuted
-                        ? "bg-red-500 hover:bg-red-600"
-                        : "bg-blue-500 hover:bg-blue-600"
-                    } transition-colors duration-200`}
-                  >
-                    {isMuted ? (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="lucide lucide-mic-off"
-                      >
-                        <line x1="2" x2="22" y1="2" y2="22" />
-                        <path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2" />
-                        <path d="M5 10v2a7 7 0 0 0 12 5" />
-                        <path d="M15 9.34V5a3 3 0 0 0-5.68-1.33" />
-                        <path d="M9 9v3a3 3 0 0 0 5.12 2.12" />
-                        <line x1="12" x2="12" y1="19" y2="22" />
-                      </svg>
-                    ) : (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="lucide lucide-mic"
-                      >
-                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                        <line x1="12" x2="12" y1="19" y2="22" />
-                      </svg>
-                    )}
-                  </button>
-
-                  <button
-                    className="bg-blue-100 hover:bg-blue-200 p-3 rounded-full transition-colors duration-200"
-                    onClick={() => {
-                      console.log("Ending session...");
-                      cleanupSession();
-                    }}
-                  >
-                    leave
-                  </button>
-                </div>
-              </div>
+          <div className="flex-1 flex flex-col p-8 bg-blue-300">
+            {/* Meeting Header */}
+            <div className="mb-4 text-center">
+              <h2 className="text-xl font-bold text-white">{meetingName}</h2>
+              <p className="text-blue-100">Active Call</p>
+              <p className="text-blue-100">Channel: {channelName}</p>
             </div>
 
-            {/* Other Participants */}
-            {participants
-              .filter((p) => !p.isLocal)
-              .map((participant) => (
-                <div
-                  key={participant.uid}
-                  className={`bg-white rounded-2xl shadow-lg p-6 w-80 transition-all duration-300 hover:shadow-xl border border-blue-100`}
-                >
-                  <div className="flex flex-col items-center space-y-4">
-                    {/* Profile Initial */}
-                    <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-3xl font-bold text-blue-500">
-                        {participant?.name?.charAt(0).toUpperCase() || "?"}
-                      </span>
-                    </div>
+            {/* Participants Section */}
+            <div className="flex flex-row overflow-x-auto gap-5 justify-center">
+              {/* Local User */}
 
-                    {/* Profile Info */}
-                    <div className="text-center">
-                      <h2 className="text-xl font-semibold text-gray-800">
-                        {participant?.name || `User ${participant.uid}`}
-                      </h2>
-                      <div className="flex items-center space-x-4 mt-4">
-                        <button
-                          onClick={() => toggleParticipantMute(participant.uid)}
-                          className={`text-white py-2 px-4 rounded ${
-                            participant.isMuted
-                              ? "bg-green-600 hover:bg-green-700"
-                              : "bg-blue-600 hover:bg-blue-700"
+              {/* Other Participants */}
+              {participants
+                .filter((p) => !p.isLocal)
+                .map((participant) => (
+                  <div
+                    key={participant.uid}
+                    className={`bg-white rounded-2xl shadow-lg p-6 w-80 transition-all duration-300 hover:shadow-xl border border-blue-100`}
+                  >
+                    <div className="flex flex-col items-center space-y-4">
+                      {/* Profile Initial */}
+                      <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-3xl font-bold text-blue-500">
+                          {participant?.name?.charAt(0).toUpperCase() || "?"}
+                        </span>
+                      </div>
+
+                      {/* Profile Info */}
+                      <div className="text-center">
+                        <h2 className="text-xl font-semibold text-gray-800">
+                          {participant?.name || `User ${participant.uid}`}
+                        </h2>
+                        <div className="flex items-center space-x-4 mt-4">
+                          <button
+                            onClick={() =>
+                              toggleParticipantMute(participant.uid)
+                            }
+                            className={`text-white py-2 px-4 rounded ${
+                              participant.isMuted
+                                ? "bg-green-600 hover:bg-green-700"
+                                : "bg-blue-600 hover:bg-blue-700"
+                            }`}
+                          >
+                            {participant.isMuted ? "Unmute" : "Mute"}
+                          </button>
+
+                          {/* Show kick button only if local user is admin */}
+                          {participants.find((p) => p.isLocal)?.isAdmin && (
+                            <button
+                              onClick={() => kickParticipant(participant.uid)}
+                              className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded"
+                              title="Kick participant from the session"
+                            >
+                              Kick
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Audio Status */}
+                      <div className="flex items-center space-x-2 w-full justify-center">
+                        <div
+                          className={`w-4 h-4 rounded-full ${
+                            participant.isMuted ? "bg-red-500" : "bg-green-500"
                           }`}
-                        >
-                          {participant.isMuted ? "Unmute" : "Mute"}
-                        </button>
+                        />
+                        <span className="text-sm text-gray-500">
+                          {participant.isMuted ? "Muted" : "Active"}
+                        </span>
                       </div>
                     </div>
-
-                    {/* Audio Status */}
-                    <div className="flex items-center space-x-2 w-full justify-center">
-                      <div
-                        className={`w-4 h-4 rounded-full ${
-                          participant.isMuted ? "bg-red-500" : "bg-green-500"
-                        }`}
-                      />
-                      <span className="text-sm text-gray-500">
-                        {participant.isMuted ? "Muted" : "Active"}
-                      </span>
-                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       <style jsx>{`
