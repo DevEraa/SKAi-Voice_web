@@ -3,7 +3,6 @@ import AgoraRTC from "agora-rtc-sdk-ng";
 import axios from "axios";
 import image from "../../../assets/startsession.webp";
 
-
 // Agora App ID\
 
 const APP_ID = sessionStorage.getItem("app_id"); // Your Agora App ID
