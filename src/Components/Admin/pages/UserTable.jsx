@@ -11,14 +11,20 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import adminHooks from "../store/hook";
-import Navbar from './Navbar';
-import Swal from 'sweetalert2/dist/sweetalert2.js'
-import 'sweetalert2/src/sweetalert2.scss';
+import Navbar from "./Navbar";
+import Swal from "sweetalert2/dist/sweetalert2.js";
+import "sweetalert2/src/sweetalert2.scss";
 
 export default function UserTable() {
   const navigate = useNavigate();
 
-  const { listTeamUsers, getTeamUserById, createTeamUser, deleteuser, updateTeamUser } = adminHooks();
+  const {
+    listTeamUsers,
+    getTeamUserById,
+    createTeamUser,
+    deleteuser,
+    updateTeamUser,
+  } = adminHooks();
 
   const [modalOpen, setModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,7 +39,7 @@ export default function UserTable() {
 
   const [users, setUsers] = useState([]);
   const [selecteduser, setselecteduser] = useState();
-  const [Logadminid, setLogadminid] = useState('');
+  const [Logadminid, setLogadminid] = useState("");
   const [userToToggle, setUserToToggle] = useState();
   const [lockUnlockPopup, setLockUnlockPopup] = useState(false);
 
@@ -44,19 +50,17 @@ export default function UserTable() {
 
   useEffect(() => {
     fetchlist();
-
   }, [currentPage, Logadminid]);
 
   const fetchlist = async () => {
-    console.log("Logadminid", Logadminid)
+    console.log("Logadminid", Logadminid);
     try {
-
       const pagesize = recordsPerPage;
       const offset = (currentPage - 1) * recordsPerPage; // Calculate offset based on current page
       const response = await listTeamUsers(Logadminid, pagesize, offset);
       setUsers(response);
       console.log("response", response.length);
-      localStorage.setItem("totaluser", response.length)
+      localStorage.setItem("totaluser", response.length);
 
       // If API returns total count, use it
       if (response.totalCount) {
@@ -91,7 +95,7 @@ export default function UserTable() {
     Channelid: "",
     mobilenumber: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -106,7 +110,7 @@ export default function UserTable() {
         tokenid: selecteduser.tokenid,
         Channelid: selecteduser.Channelid,
         password: selecteduser.password,
-        confirmPassword : selecteduser.password
+        confirmPassword: selecteduser.password,
       });
     }
   }, [selecteduser]);
@@ -123,20 +127,20 @@ export default function UserTable() {
     e.preventDefault();
     console.log("selecteduser", selecteduser);
     console.log("formData", formData.password);
-    if(formData?.password !== formData?.confirmPassword){
+    if (formData?.password !== formData?.confirmPassword) {
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: "Password Does Not Match"
+        text: "Password Does Not Match",
       });
       return;
     }
-   
+
     const response = await updateTeamUser(selecteduser.id, formData); // ✅ Await the response
     console.log("UPdate response:", response);
     fetchlist();
     setModalOpen(false);
-  }
+  };
   const [usermodalOpen, setuserModalOpen] = useState(false);
 
   useEffect(() => {
@@ -144,15 +148,14 @@ export default function UserTable() {
     fetchlist();
   }, [usermodalOpen]);
 
-
   const toggleLockStatus = async (adminId, isLocked) => {
-    console.log("userToToggle", userToToggle)
-    console.log(adminId, userToToggle.status)
+    console.log("userToToggle", userToToggle);
+    console.log(adminId, userToToggle.status);
     try {
       const updateData = {
-        status: userToToggle?.status ? 0 : 1
-      }
-      console.log("updateData", updateData)
+        status: userToToggle?.status ? 0 : 1,
+      };
+      console.log("updateData", updateData);
       await updateTeamUser(adminId, updateData);
       fetchlist();
       // listAdmin(recordsPerPage, (currentPage - 1) * recordsPerPage); // Refresh list
@@ -162,7 +165,10 @@ export default function UserTable() {
   };
   return (
     <>
-      <Navbar usermodalOpen={usermodalOpen} setuserModalOpen={setuserModalOpen} />
+      <Navbar
+        usermodalOpen={usermodalOpen}
+        setuserModalOpen={setuserModalOpen}
+      />
       <div className="container mx-auto p-3 md:w-4/5 w-full">
         <div className="flex items-center justify-between mb-4">
           <div className="relative md:w-1/3 w-full">
@@ -198,7 +204,8 @@ export default function UserTable() {
                       Mobile Number
                     </th>
                     <th className="px-6 py-3 text-center text-sm font-semibold">
-                      Lock/Unlock</th>
+                      Lock/Unlock
+                    </th>
 
                     <th className="px-6 py-3 text-center text-sm font-semibold">
                       Update
@@ -235,7 +242,11 @@ export default function UserTable() {
                           }}
                           className="cursor-pointer text-gray-600 hover:text-gray-800 transition"
                         >
-                          {user.status ? <Unlock size={20} /> : <Lock size={20} />}
+                          {user.status ? (
+                            <Unlock size={20} />
+                          ) : (
+                            <Lock size={20} />
+                          )}
                         </button>
                       </td>
                       <td className="px-6 py-4 text-center">
@@ -244,7 +255,6 @@ export default function UserTable() {
                             setselecteduser(user); // ✅ Set selected user ID
                             setModalOpen(true);
                           }}
-
                           className="cursor-pointer text-yellow-500 hover:text-yellow-700 transition"
                         >
                           <Edit size={20} />
@@ -378,7 +388,11 @@ export default function UserTable() {
                   <input
                     type={conformpasswordVisible ? "text" : "password"}
                     name="confirmPassword"
-                    value={formData.confirmPassword !== undefined ? formData.confirmPassword : formData.password}
+                    value={
+                      formData.confirmPassword !== undefined
+                        ? formData.confirmPassword
+                        : formData.password
+                    }
                     placeholder="Confirm password"
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all pr-10"
@@ -413,19 +427,22 @@ export default function UserTable() {
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   />
                 </div>
-                {/* <div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Channel ID
+                    Channel Name
                   </label>
                   <input
                     type="text"
-                    value={formData.Channelid}
+                    readOnly
+                    value={sessionStorage
+                      .getItem("channel_name")
+                      .replace(/"/g, "")}
                     name="Channelid"
                     placeholder="Channel ID"
-                    onChange={handleChange}
+                    // onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   />
-                </div> */}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 gap-4">
@@ -535,7 +552,6 @@ export default function UserTable() {
         </div>
       )}
 
-
       {lockUnlockPopup && (
         <div
           id="lock-unlock-modal"
@@ -565,7 +581,9 @@ export default function UserTable() {
               </button>
               <div className="p-6 text-center">
                 <svg
-                  className={` mx-auto mb-4 ${!userToToggle?.status ? "text-green-600" : "text-red-600"} w-14 h-14`}
+                  className={` mx-auto mb-4 ${
+                    !userToToggle?.status ? "text-green-600" : "text-red-600"
+                  } w-14 h-14`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -574,23 +592,31 @@ export default function UserTable() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d={!userToToggle?.status ?
-                      "M5 12h14M12 5v14M9 9l6 6M9 15l6-6" :
-                      "M6 18L18 6M6 6l12 12"
+                    d={
+                      !userToToggle?.status
+                        ? "M5 12h14M12 5v14M9 9l6 6M9 15l6-6"
+                        : "M6 18L18 6M6 6l12 12"
                     }
                   />
                 </svg>
                 <h3 className="mb-4 text-xl font-semibold text-gray-800">
-                  {!userToToggle?.status ? "Unlock User Access" : "Lock User Access"}
+                  {!userToToggle?.status
+                    ? "Unlock User Access"
+                    : "Lock User Access"}
                 </h3>
                 <p className="mb-6 text-gray-600">
-                  Are you sure you want to {!userToToggle?.status ? "unlock" : "lock"} the User{" "}
-                  <span className="font-semibold">{!userToToggle?.status}</span>?
+                  Are you sure you want to{" "}
+                  {!userToToggle?.status ? "unlock" : "lock"} the User{" "}
+                  <span className="font-semibold">{!userToToggle?.status}</span>
+                  ?
                 </p>
                 <div className="flex justify-center space-x-4">
                   <button
-                    className={`cursor-pointer px-6 py-2 text-white rounded-md transition-colors ${!userToToggle?.status ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"
-                      }`}
+                    className={`cursor-pointer px-6 py-2 text-white rounded-md transition-colors ${
+                      !userToToggle?.status
+                        ? "bg-green-600 hover:bg-green-700"
+                        : "bg-red-600 hover:bg-red-700"
+                    }`}
                     onClick={() => {
                       toggleLockStatus(userToToggle.id, !userToToggle.locked);
                       setLockUnlockPopup(false);

@@ -4,14 +4,12 @@ import { Eye, EyeOff } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import adminHooks from "../store/hook";
-import Swal from 'sweetalert2/dist/sweetalert2.js'
-import 'sweetalert2/src/sweetalert2.scss';
+import Swal from "sweetalert2/dist/sweetalert2.js";
+import "sweetalert2/src/sweetalert2.scss";
 import superadminApp from "../../SuperAdmin/store/hook";
-
 
 const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
   const navigate = useNavigate();
-
 
   const { updateAdmin } = superadminApp();
 
@@ -29,10 +27,9 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
   const [Logadminid, setLogadminid] = useState("");
   const [Totaluser, setTotaluser] = useState(0);
   const [Adminlimitpopup, setAdminlimitpopup] = useState(false);
-  const [Logoutpopup, setlogoutpopup] = useState(false)
+  const [Logoutpopup, setlogoutpopup] = useState(false);
   const [Passwordresetpopup, setPasswordresetpopup] = useState(false);
   const [Adminid, setAdminid] = useState();
-
 
   const [formData, setFormData] = useState({
     name: "",
@@ -41,7 +38,7 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
     mobilenumber: "",
     username: "",
     createdby: Logadminid,
-    Channelid: "Channelid"
+    Channelid: "Channelid",
   });
 
   useEffect(() => {
@@ -50,7 +47,7 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
     setLoguserlimit(localStorage.getItem("admin_limit"));
     setLogadminid(localStorage.getItem("admin_id"));
     setTotaluser(localStorage.getItem("totaluser"));
-    setAdminid(localStorage.getItem("admin_id"))
+    setAdminid(localStorage.getItem("admin_id"));
     setFormData({ ...formData, createdby: localStorage.getItem("admin_id") });
   }, []);
 
@@ -75,7 +72,6 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
   //     console.log("Limit exceeded: Cannot create more users.");
   //     return;
   //   }
-
 
   //   const { name, password, confirmPassword, username, mobilenumber, } = formData;
   //   console.log("form data", formData)
@@ -125,17 +121,8 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
     e.preventDefault();
     console.log("Form data submitted");
 
-    // Ensure Totaluser is correctly fetched from local storage or state
-    const currentTotalUsers = parseInt(localStorage.getItem("totaluser")) || Totaluser;
-
-    if (currentTotalUsers >= Loguserlimit) {
-      console.log("Loguserlimit:", Loguserlimit, "Totaluser:", currentTotalUsers);
-      setAdminlimitpopup(true);
-      console.log("Limit exceeded: Cannot create more users.");
-      return;
-    }
-
-    const { name, password, confirmPassword, username, mobilenumber } = formData;
+    const { name, password, confirmPassword, username, mobilenumber } =
+      formData;
 
     if (name && password && confirmPassword && username) {
       if (password === confirmPassword) {
@@ -149,16 +136,13 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
             Swal.fire({
               title: "Success!",
               text: "User Added Successfully!",
-              icon: "success"
+              icon: "success",
             });
 
             // Update Totaluser in state and local storage
-            const updatedTotalUsers = currentTotalUsers + 1;
-            setTotaluser(updatedTotalUsers);
-            localStorage.setItem("totaluser", updatedTotalUsers);
 
             setModalOpen(false);
-            setuserModalOpen(prev => !prev);
+            setuserModalOpen((prev) => !prev);
           }
         } catch (error) {
           console.error(error.message);
@@ -184,25 +168,24 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
     }
   };
 
-
   const [Passwordreset, setPasswordreset] = useState({
-    password: '',
-    conformpassword: ''
-  })
+    password: "",
+    conformpassword: "",
+  });
   const handlePasswordReset = async () => {
-    console.log("Adminid", Adminid)
+    console.log("Adminid", Adminid);
 
     const updatepassword = { password: Passwordreset.password };
     console.log("Passwordreset", updatepassword);
     const request = await updateAdmin(Adminid, updatepassword);
-    console.log(request)
+    console.log(request);
     setPasswordresetpopup(false);
     Swal.fire({
       title: "Successfuly!",
       text: "Password Reset Successfuly!",
-      icon: "success"
+      icon: "success",
     });
-  }
+  };
 
   return (
     <>
@@ -291,7 +274,10 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
 
               {/* New Job Button - Desktop */}
               <button
-                onClick={() => { setModalOpen(true); setuserModalOpen(prev => !prev) }}
+                onClick={() => {
+                  setModalOpen(true);
+                  setuserModalOpen((prev) => !prev);
+                }}
                 className="cursor-pointer hidden md:inline-flex items-center bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 + New User
@@ -368,7 +354,10 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
                 Call Log
               </NavLink>
               <button
-                onClick={() => { setModalOpen(true); setuserModalOpen(prev => !prev) }}
+                onClick={() => {
+                  setModalOpen(true);
+                  setuserModalOpen((prev) => !prev);
+                }}
                 className="cursor-pointer w-full my-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-base font-medium transition-colors"
               >
                 + New User
@@ -422,7 +411,6 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
                   <span className="text-gray-700 font-medium">
                     {/* {Loguseremail === null ? "Not Added" : Loguseremail } */}
                     {Logadminid}
-
                   </span>
                 </div>
 
@@ -508,7 +496,10 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
             <div className="flex justify-between items-center pb-4 mb-4 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-800">Add New User</h2>
               <button
-                onClick={() => { setModalOpen(false); setuserModalOpen(prev => !prev) }}
+                onClick={() => {
+                  setModalOpen(false);
+                  setuserModalOpen((prev) => !prev);
+                }}
                 className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
               >
                 <svg
@@ -548,7 +539,6 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
                   </label>
                   <input
                     type="text"
-
                     name="mobilenumber"
                     pattern="[0-9]*"
                     inputMode="numeric"
@@ -642,22 +632,23 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Channel ID
+                    Channel Name
                   </label>
                   <input
                     type="text"
                     readOnly
-                    value="ChannelID"
+                    value={sessionStorage
+                      .getItem("channel_name")
+                      .replace(/"/g, "")}
                     name="Channelid"
-                    placeholder="Channel ID"
-                    onChange={handleChange}
+                    // placeholder="Channel ID"
+                    // onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-
                 {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     App ID
@@ -691,7 +682,10 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
         >
           <div className="relative p-4 w-full max-w-md">
             <div className="relative bg-white rounded-lg shadow-lg">
-              <div onClick={() => setAdminlimitpopup(false)} className="p-6 text-center">
+              <div
+                onClick={() => setAdminlimitpopup(false)}
+                className="p-6 text-center"
+              >
                 <svg
                   className="mx-auto mb-4 text-red-600 w-14 h-14"
                   fill="none"
@@ -712,7 +706,8 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
                   You have reached your limit to create a user. Please contact
                   your SuperUser.
                 </p>
-                <button onClick={() => setAdminlimitpopup(false)}
+                <button
+                  onClick={() => setAdminlimitpopup(false)}
                   className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
                 >
                   OK
@@ -772,7 +767,6 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
             </div>
           </div>
         </div>
-
       )}
 
       {Passwordresetpopup && (
@@ -809,7 +803,12 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
                 <div className="mb-4">
                   <input
                     type="password"
-                    onChange={(e) => setPasswordreset({ ...Passwordreset, password: e.target.value })}
+                    onChange={(e) =>
+                      setPasswordreset({
+                        ...Passwordreset,
+                        password: e.target.value,
+                      })
+                    }
                     placeholder="New Password"
                     className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -817,7 +816,12 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
                 <div className="mb-6">
                   <input
                     type="password"
-                    onChange={(e) => setPasswordreset({ ...Passwordreset, conformpassword: e.target.value })}
+                    onChange={(e) =>
+                      setPasswordreset({
+                        ...Passwordreset,
+                        conformpassword: e.target.value,
+                      })
+                    }
                     placeholder="Confirm New Password"
                     className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -841,7 +845,6 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
           </div>
         </div>
       )}
-
     </>
   );
 };

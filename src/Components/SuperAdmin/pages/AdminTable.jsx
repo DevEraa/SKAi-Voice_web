@@ -94,13 +94,14 @@ export default function Table() {
 
   const handleEditClick = async (user) => {
     const fullUserDetails = await getAdminById(user.id);
-    console.log(fullUserDetails);
+    console.log(fullUserDetails, "fullUserDetails");
     setFormData({
       id: fullUserDetails.id,
       email: fullUserDetails.email || "",
       adminlimits: fullUserDetails.adminlimits || "",
       name: fullUserDetails.name,
-      confirmPassword: "",
+      password: fullUserDetails.password || "",
+      confirmPassword: fullUserDetails.password || "",
       app_id: fullUserDetails.app_id || "",
       token_id: fullUserDetails.token_id || "",
       channel_name: fullUserDetails.channel_name || "",
@@ -440,6 +441,7 @@ export default function Table() {
                   </label>
                   <input
                     type={passwordVisible ? "text" : "password"}
+                    value={formData.password}
                     name="password"
                     placeholder="Create password"
                     onChange={handleChange}
@@ -464,6 +466,11 @@ export default function Table() {
                   <input
                     type={conformpasswordVisible ? "text" : "password"}
                     name="confirmPassword"
+                    value={
+                      formData.confirmPassword !== undefined
+                        ? formData.confirmPassword
+                        : formData.password
+                    }
                     placeholder="Confirm password"
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all pr-10"
@@ -632,8 +639,12 @@ export default function Table() {
                     : "Lock Admin Access"}
                 </h3>
                 <p className="mb-6 text-gray-600">
-                  Are you sure you want to {!userToToggle?.lcokstatus ? "unlock" : "lock"} the User{" "}
-                  <span className="font-semibold">{!userToToggle?.lcokstatus}</span>?
+                  Are you sure you want to{" "}
+                  {!userToToggle?.lcokstatus ? "unlock" : "lock"} the User{" "}
+                  <span className="font-semibold">
+                    {!userToToggle?.lcokstatus}
+                  </span>
+                  ?
                 </p>
                 <div className="flex justify-center space-x-4">
                   <button
