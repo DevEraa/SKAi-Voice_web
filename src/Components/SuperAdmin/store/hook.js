@@ -54,6 +54,28 @@ const superadminApp = () => {
         }
     }
 
+    const adminhistory = async () => {
+        try {
+            const response = await adminAppService.get(`superadmin/gethistory`);
+            return response;
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to fetch admin history");
+            throw new Error(error);
+        }
+    }
+
+    const deleteadminhistory = async (id) => {
+        try {
+            const response = await adminAppService.delete( `superadmin/deletehistory/${id}`);
+            return response;
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to delete admin history");
+            throw new Error(error);
+        }
+    }
+
     const updateAdmin = async (id, data) => {
         try {
             const response = await adminAppService.put(`/admin/update/${id}`, data);
@@ -69,6 +91,7 @@ const superadminApp = () => {
     }
 
     const deleteAdmin = async (id) => {
+        console.log("userToDelete",id)
         try {
             const response = await adminAppService.delete(`/admin/delete/${id}`);
             if (response.message === "✅ Admin deleted successfully") {
@@ -82,13 +105,39 @@ const superadminApp = () => {
         }
     }
 
+    const saveprice = async (price) => {
+        try {
+            const response = await adminAppService.post('superadmin/saveprice', price);
+            return response;
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to create price");
+            throw new Error(error);
+        }
+    }
+
+    const getprice = async () => {
+        try {
+            const response = await adminAppService.get(`superadmin/getprice`);
+            return response;
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to fetch price ");
+            throw new Error(error);
+        }
+    }
+
     return {
         superadminlogin,
         createNewAdmin,
         listAdmin,
         getAdminById,
         updateAdmin,
-        deleteAdmin
+        deleteAdmin,
+        adminhistory,
+        deleteadminhistory,
+        saveprice,
+        getprice
     };
 }
 
