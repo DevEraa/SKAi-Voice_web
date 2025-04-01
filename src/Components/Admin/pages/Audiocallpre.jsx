@@ -3,13 +3,9 @@ import AgoraRTC from "agora-rtc-sdk-ng";
 import axios from "axios";
 import image from "../../../assets/startsession.webp";
 
-// Agora App ID\
-
+// Agora App ID
 const APP_ID = sessionStorage.getItem("app_id"); // Your Agora App ID
-// Channel name from session storage
-// const APP_CERTIFICATE = sessionStorage.getItem("app_certificate"); // Your Agora App Certificate
 const API_URL = `${import.meta.env.VITE_APP_API_URL}/call`; // Your backend API URL
-// const channelName = sessionStorage.getItem("channel_name"); // Channel name from session storage
 
 export default function Audiocallpre() {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
@@ -24,7 +20,6 @@ export default function Audiocallpre() {
   const channelNameis = sessionStorage.getItem("channel_name")
     ? sessionStorage.getItem("channel_name").replace(/"/g, "")
     : "";
-  // console.log("channelNameis", channelNameis);
 
   const client = useRef(null);
   const localAudioTrack = useRef(null);
@@ -39,8 +34,6 @@ export default function Audiocallpre() {
     // Set up event listeners for user joining and leaving
     client.current.on("user-published", handleUserPublished);
     client.current.on("user-left", handleUserLeft);
-
-    // Set up event listener for user-info-updated
     client.current.on("user-info-updated", handleUserInfoUpdated);
 
     return () => {
@@ -51,13 +44,34 @@ export default function Audiocallpre() {
     };
   }, []);
 
+  // Polling effect to check if the user has been kicked
+  useEffect(() => {
+    if (!isSessionStarted) return;
+
+    const interval = setInterval(async () => {
+      try {
+        // Call backend to check participant status
+        const response = await axios.get(
+          `${API_URL}/meetings/check-participant-status/${channelNameis}/${localUidRef.current}`
+        );
+        // If the response indicates the user has been kicked, clean up the session.
+        if (response.data.kicked) {
+          alert("You have been removed from the meeting by the admin.");
+          cleanupSession();
+        }
+      } catch (error) {
+        console.error("Error checking participant status:", error);
+      }
+    }, 5000); // Check every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [isSessionStarted, channelNameis]);
+
   // Handle user info updates (like username)
   const handleUserInfoUpdated = (uid, msg) => {
     console.log("User info updated:", uid, msg);
     if (msg.userName) {
       userNamesRef.current[uid] = msg.userName;
-
-      // Update the participants list with the new username
       setParticipants((prev) =>
         prev.map((p) => (p.uid === uid ? { ...p, name: msg.userName } : p))
       );
@@ -66,23 +80,16 @@ export default function Audiocallpre() {
 
   const handleUserPublished = async (user, mediaType) => {
     console.log("User published:", user);
-
     await client.current.subscribe(user, mediaType);
 
     if (mediaType === "audio") {
-      // Play the audio
       user.audioTrack.play();
-
-      // Store reference to track the remote user's audio enabled state
       remoteUserAudioStates.current[user.uid] = {
         audioTrack: user.audioTrack,
         enabled: true,
       };
 
-      // Check if we have a stored name for this user
       const userName = userNamesRef.current[user.uid] || `User ${user.uid}`;
-
-      // Update participants list if not already added
       setParticipants((prev) => {
         if (!prev.some((p) => p.uid === user.uid)) {
           return [
@@ -98,13 +105,9 @@ export default function Audiocallpre() {
         return prev;
       });
 
-      // Request user metadata (this could include username)
       fetchUserMetadata(user.uid);
     }
   };
-
-  console.log("participants", participants);
-  // console.log()
 
   // Fetch user metadata from your backend
   const fetchUserMetadata = async (uid) => {
@@ -114,8 +117,6 @@ export default function Audiocallpre() {
       );
       if (response.data && response.data.userName) {
         userNamesRef.current[uid] = response.data.userName;
-
-        // Update the participants list with the fetched username
         setParticipants((prev) =>
           prev.map((p) =>
             p.uid === uid ? { ...p, name: response.data.userName } : p
@@ -128,11 +129,9 @@ export default function Audiocallpre() {
   };
 
   const handleUserLeft = (user) => {
-    // Clean up remote user's track reference
     if (remoteUserAudioStates.current[user.uid]) {
       delete remoteUserAudioStates.current[user.uid];
     }
-    // Remove user from participants list
     setParticipants((prev) => prev.filter((p) => p.uid !== user.uid));
   };
 
@@ -152,20 +151,14 @@ export default function Audiocallpre() {
       setChannelName(channelNameis);
       localUidRef.current = adminUid;
 
-      // Configure Agora client role
       client.current.setClientRole("host");
-
-      // Join the Agora channel
       await client.current.join(APP_ID, channelName, token, adminUid);
 
-      // Set the admin name in the userNames reference
       userNamesRef.current[adminUid] = adminname;
 
-      // Create local audio track
       localAudioTrack.current = await AgoraRTC.createMicrophoneAudioTrack();
       await client.current.publish([localAudioTrack.current]);
 
-      // Add admin to participants list
       setParticipants([
         {
           uid: adminUid,
@@ -190,20 +183,17 @@ export default function Audiocallpre() {
     }
   };
 
-  // Cleanup function for ending the session (for the admin/local user)
   const cleanupSession = async () => {
     console.log("Cleaning up session...");
     setLeft(true);
 
     try {
-      // First, notify the server that the meeting is no longer active
       await axios.post(`${API_URL}/meetings/update`, {
         isActive: false,
         channelName: channelNameis,
       });
       console.log("Meeting ended on server.");
 
-      // Then clean up local resources
       if (localAudioTrack.current) {
         localAudioTrack.current.stop();
         localAudioTrack.current.close();
@@ -222,29 +212,23 @@ export default function Audiocallpre() {
     }
   };
 
-  // Toggle mute for the local audio track
   const toggleMute = async () => {
     if (localAudioTrack.current) {
       await localAudioTrack.current.setMuted(!isMuted);
       setIsMuted(!isMuted);
-
-      // Update local participant's mute state in the UI
       setParticipants((prev) =>
         prev.map((p) => (p.isLocal ? { ...p, isMuted: !isMuted } : p))
       );
     }
   };
 
-  // Toggle remote participant mute state locally (only affects your playback)
   const toggleParticipantMute = (uid) => {
     const participant = participants.find((p) => p.uid === uid);
     if (!participant) return;
-
     const newMuteState = !participant.isMuted;
     setParticipants((prev) =>
       prev.map((p) => (p.uid === uid ? { ...p, isMuted: newMuteState } : p))
     );
-
     const remoteTrack = remoteUserAudioStates.current[uid]?.audioTrack;
     if (remoteTrack) {
       if (newMuteState) {
@@ -256,32 +240,25 @@ export default function Audiocallpre() {
     }
   };
 
-  // New function to kick a participant from the session
   const kickParticipant = async (uid) => {
     try {
-      // Check if the current user is the admin
       const isAdmin = participants.find((p) => p.isLocal)?.isAdmin === true;
-
       if (!isAdmin) {
         console.error("Only admin can kick participants");
         return;
       }
 
-      // Implement API call to kick participant
       await axios.post(`${API_URL}/meetings/kick-participant`, {
         channelName: channelNameis,
         participantUid: uid,
         adminUid: localUidRef.current,
       });
 
-      // Remove participant from local state
       setParticipants((prev) => prev.filter((p) => p.uid !== uid));
 
-      // Clean up any references to the participant
       if (remoteUserAudioStates.current[uid]) {
         delete remoteUserAudioStates.current[uid];
       }
-
       if (userNamesRef.current[uid]) {
         delete userNamesRef.current[uid];
       }
@@ -296,7 +273,6 @@ export default function Audiocallpre() {
     <div className="w-full md:w-5/6 h-[70vh] mx-auto my-16 bg-white rounded-xl overflow-hidden transition-all duration-300 shadow-2xl flex flex-col">
       {!isSessionStarted ? (
         <>
-          {/* Initial View */}
           <div className="flex-1 flex items-center justify-center p-8">
             <div className="relative w-full h-64 overflow-hidden">
               <img
@@ -306,8 +282,6 @@ export default function Audiocallpre() {
               />
             </div>
           </div>
-
-          {/* Start Button */}
           <div className="p-6 text-center border-t border-blue-50">
             <button
               onClick={startSession}
@@ -320,7 +294,6 @@ export default function Audiocallpre() {
           </div>
         </>
       ) : (
-        /* Meeting View */
         <>
           <div className="flex space-x-4 w-full justify-center">
             <button
@@ -382,18 +355,12 @@ export default function Audiocallpre() {
             </button>
           </div>
           <div className="flex-1 flex flex-col p-8 bg-blue-300">
-            {/* Meeting Header */}
             <div className="mb-4 text-center">
               <h2 className="text-xl font-bold text-white">{meetingName}</h2>
               <p className="text-blue-100">Active Call</p>
               <p className="text-blue-100">Channel: {channelName}</p>
             </div>
-
-            {/* Participants Section */}
             <div className="flex flex-row overflow-x-auto gap-5 justify-center">
-              {/* Local User */}
-
-              {/* Other Participants */}
               {participants
                 .filter((p) => !p.isLocal)
                 .map((participant) => (
@@ -402,14 +369,11 @@ export default function Audiocallpre() {
                     className={`bg-white rounded-2xl shadow-lg p-6 w-80 transition-all duration-300 hover:shadow-xl border border-blue-100`}
                   >
                     <div className="flex flex-col items-center space-y-4">
-                      {/* Profile Initial */}
                       <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
                         <span className="text-3xl font-bold text-blue-500">
                           {participant?.name?.charAt(0).toUpperCase() || "?"}
                         </span>
                       </div>
-
-                      {/* Profile Info */}
                       <div className="text-center">
                         <h2 className="text-xl font-semibold text-gray-800">
                           {participant?.name || `User ${participant.uid}`}
@@ -427,8 +391,6 @@ export default function Audiocallpre() {
                           >
                             {participant.isMuted ? "Unmute" : "Mute"}
                           </button>
-
-                          {/* Show kick button only if local user is admin */}
                           {participants.find((p) => p.isLocal)?.isAdmin && (
                             <button
                               onClick={() => kickParticipant(participant.uid)}
@@ -440,8 +402,6 @@ export default function Audiocallpre() {
                           )}
                         </div>
                       </div>
-
-                      {/* Audio Status */}
                       <div className="flex items-center space-x-2 w-full justify-center">
                         <div
                           className={`w-4 h-4 rounded-full ${
