@@ -7,11 +7,12 @@ import adminHooks from "../store/hook";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import "sweetalert2/src/sweetalert2.scss";
 import superadminApp from "../../SuperAdmin/store/hook";
+import axios from "axios";
 
 const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
   const navigate = useNavigate();
 
-  const { updateAdmin } = superadminApp();
+  const { updateAdmin, getAdminById } = superadminApp();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -62,6 +63,21 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+  useEffect(()=>{
+    const admin = async () => {
+      const id = localStorage.getItem("admin_id");
+      try {
+        const response = await getAdminById(id);
+        setLoguserlimit(response?.adminlimits)
+        setLogadminid(response?.username)
+        console.log("response",response)
+      } catch (error) {
+        console.log("error",error)
+      }
+    }
+    admin();
+  },[])
 
   // const handleSubmituser = async (e) => {
   //   e.preventDefault();

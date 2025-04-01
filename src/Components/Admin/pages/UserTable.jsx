@@ -15,6 +15,7 @@ import Navbar from "./Navbar";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import "sweetalert2/src/sweetalert2.scss";
 
+
 export default function UserTable() {
   const navigate = useNavigate();
 
@@ -477,7 +478,7 @@ export default function UserTable() {
                 type="submit"
                 className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg active:scale-95 transform mt-4"
               >
-                Add User
+                Update User
               </button>
             </form>
           </div>

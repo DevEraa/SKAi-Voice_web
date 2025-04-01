@@ -12,6 +12,7 @@ export default function Navbar({ setUserAdded }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [Logoutpopup, setlogoutpopup] = useState(false);
   useEffect(() => {
     setUserAdded(modalOpen);
   }, [modalOpen]);
@@ -165,7 +166,7 @@ export default function Navbar({ setUserAdded }) {
         </ul>
         <a
           className="hidden lg:inline-block py-2 px-6 bg-blue-500 hover:bg-blue-600 text-sm text-white font-bold rounded-xl transition duration-200"
-          onClick={() => navigate("/")}
+          onClick={() => setlogoutpopup(true)}
         >
           Log out
         </a>
@@ -234,7 +235,7 @@ export default function Navbar({ setUserAdded }) {
             </ul>
           </div>
           <div className="mt-auto">
-            <div className="pt-6" onClick={() => navigate("/")}>
+            <div className="pt-6" onClick={() => setlogoutpopup(true)}>
               <a className="block px-4 py-3 mb-2 leading-loose text-xs text-center text-white font-semibold bg-blue-600 hover:bg-blue-700  rounded-xl">
                 Log Out
               </a>
@@ -437,6 +438,57 @@ export default function Navbar({ setUserAdded }) {
                 Add Admin
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+{Logoutpopup && (
+        <div
+          id="logout-modal"
+          tabIndex={-1}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm animate-fadeIn"
+        >
+          <div className="relative p-4 w-full max-w-md">
+            <div className="relative bg-white rounded-lg shadow-lg">
+              <button
+                type="button"
+                className="cursor-pointer absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
+                onClick={() => setlogoutpopup(false)}
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+              <div className="p-6 text-center">
+                <h3 className="mb-4 text-xl font-semibold text-gray-800">
+                  Do you want to logout?
+                </h3>
+                <div className="flex justify-center space-x-4">
+                  <button
+                    className="cursor-pointer px-6 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors"
+                    onClick={() => navigate("/")} // Call your logout function
+                  >
+                    Yes
+                  </button>
+                  <button
+                    onClick={() => setlogoutpopup(false)}
+                    className="cursor-pointer px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

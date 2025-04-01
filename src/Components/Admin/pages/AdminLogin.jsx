@@ -31,24 +31,29 @@ export default function AdminLogin() {
     }
 
     try {
-      console.log("data",data)
+      console.log("data", data)
       const success = await login(data);
       console.log(success?.name)
-      localStorage.setItem("admin_name",success?.name );
-      localStorage.setItem("admin_id",success?.username );
-      localStorage.setItem("admin_limit",success?.adminlimits );
-      localStorage.setItem("admin_email",success?.email );
-      localStorage.setItem("admin_id",success?.id );
+      localStorage.setItem("admin_name", success?.name);
+      localStorage.setItem("admin_id", success?.username);
+      localStorage.setItem("admin_limit", success?.adminlimits);
+      localStorage.setItem("admin_email", success?.email);
+      localStorage.setItem("admin_id", success?.id);
       if (success.message === "✅ Login successful!") {
         navigate("/admindashboard");
-      }if(success.message === "Your are Lock, Contact your Superadmin"){
+      } if (success.message === "Your are Lock, Contact your Superadmin") {
         setError("Your are Lock, Contact your Superadmin");
       } else {
         setError("Invalid credentials");
       }
     } catch (err) {
-      setError("Login failed. Please try again.");
-      console.error(err);
+      let errorMessage = err.message || "Login failed. Please try again.";
+
+  // Remove "Error: " prefix if present
+  errorMessage = errorMessage.replace(/^Error:\s*/, "");
+
+  setError(errorMessage); // Set cleaned-up error message
+  console.error(err);
     }
   };
 
