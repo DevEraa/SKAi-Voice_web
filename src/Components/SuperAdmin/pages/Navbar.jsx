@@ -10,12 +10,32 @@ import "sweetalert2/src/sweetalert2.scss";
 export default function Navbar({ setUserAdded }) {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-
+  const { createNewAdmin, saveprice, getprice } = superadminApp();
   const [modalOpen, setModalOpen] = useState(false);
+  const [pricemodalOpen, setpriceModalOpen] = useState(false);
   const [Logoutpopup, setlogoutpopup] = useState(false);
+  const [price, setprice] = useState()
   useEffect(() => {
-    setUserAdded(modalOpen);
-  }, [modalOpen]);
+    const getpricedata = async () => {
+      try {
+        const result = await getprice();
+        console.log("Full Response:", result); // Log full response
+
+        if (result?.Price && Array.isArray(result.Price) && result.Price.length > 0) {
+          console.log("Price:", result.Price[0].price);
+          setprice(result.Price[0].price)
+        } else {
+          console.log("No price data found");
+        }
+
+      } catch (error) {
+        console.log("❌ Error fetching price:", error);
+      }
+    };
+    getpricedata();
+  }, [modalOpen, pricemodalOpen]);
+
+
   const [formData, setFormData] = useState({
     name: "",
     adminlimits: "",
@@ -27,7 +47,7 @@ export default function Navbar({ setUserAdded }) {
     phoneNumber: "",
     username: "",
   });
-  const { createNewAdmin } = superadminApp();
+
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [conformpasswordVisible, setConformPasswordVisible] = useState(false);
 
@@ -73,6 +93,17 @@ export default function Navbar({ setUserAdded }) {
       });
     }
   };
+
+  const addprice = async () => {
+    const pricedata = { price: price }
+    try {
+      const result = await saveprice(pricedata);
+      console.log(result);
+      setpriceModalOpen(false)
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   return (
     <>
@@ -133,6 +164,33 @@ export default function Navbar({ setUserAdded }) {
               }
             >
               Add Admin
+            </a>
+          </li>
+          <li className="text-gray-300">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              stroke="currentColor"
+              className="w-4 h-4 current-fill"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 5v0m0 7v0m0 7v0m0-13a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+              />
+            </svg>
+          </li>
+          <li onClick={() => setpriceModalOpen(true)}>
+            <a
+              className={
+                modalOpen
+                  ? "text-sm text-blue-600 font-bold cursor-pointer"
+                  : "text-sm text-gray-400 hover:text-gray-500 cursor-pointer"
+              }
+            >
+              Add Price
             </a>
           </li>
           <li className="text-gray-300">
@@ -219,6 +277,33 @@ export default function Navbar({ setUserAdded }) {
                 >
                   Add Admin
                 </a>
+              </li>
+              <li onClick={() => setpriceModalOpen(true)}>
+                <a
+                  className={
+                    modalOpen
+                      ? "text-sm text-blue-600 font-bold cursor-pointer"
+                      : "text-sm text-gray-400 hover:text-gray-500 cursor-pointer"
+                  }
+                >
+                  Add Price
+                </a>
+              </li>
+              <li className="text-gray-300">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  stroke="currentColor"
+                  className="w-4 h-4 current-fill"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 5v0m0 7v0m0 7v0m0-13a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                  />
+                </svg>
               </li>
               <li className="mb-1">
                 <NavLink
@@ -442,7 +527,7 @@ export default function Navbar({ setUserAdded }) {
         </div>
       )}
 
-{Logoutpopup && (
+      {Logoutpopup && (
         <div
           id="logout-modal"
           tabIndex={-1}
@@ -482,6 +567,70 @@ export default function Navbar({ setUserAdded }) {
                   </button>
                   <button
                     onClick={() => setlogoutpopup(false)}
+                    className="cursor-pointer px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {pricemodalOpen && (
+        <div
+          id="logout-modal"
+          tabIndex={-1}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm animate-fadeIn"
+        >
+          <div className="relative p-4 w-full max-w-md">
+            <div className="relative bg-white rounded-lg shadow-lg">
+              <button
+                type="button"
+                className="cursor-pointer absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
+                onClick={() => setpriceModalOpen(false)}
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+              <div className="p-6 text-center">
+                <div>
+                  <label className="text-left block text-sm font-medium text-gray-700 mb-1">
+                    Price
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    name="name"
+                    value={price}
+                    placeholder="Enter Price"
+                    onChange={(e) => setprice(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  />
+                </div>
+                <br />
+                <div className="flex justify-center space-x-4">
+                  <button
+                    className="cursor-pointer px-6 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors"
+                    onClick={() => addprice()} // Call your logout function
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => setpriceModalOpen(false)}
                     className="cursor-pointer px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
                   >
                     Cancel
