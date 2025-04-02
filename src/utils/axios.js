@@ -12,7 +12,7 @@ export const useAdminAppService = () => {
         config.headers.Authorization = userData.token ? `Bearer ${userData.token}` : '';
         // config.headers.Accept = '*/*';
         // config.headers['Custom-Header'] = 'CustomHeaderValue';
-        config.headers['domainName'] = 'marketingcrm';
+        config.headers['domainName'] = 'skyvoice';
         return config;
     });
 

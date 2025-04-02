@@ -16,13 +16,27 @@ export default function Audiocallpre() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [left, setLeft] = useState(false);
-  const adminname = localStorage.getItem("admin_name");
-  const channelNameis = sessionStorage.getItem("channel_name")
-    ? sessionStorage.getItem("channel_name").replace(/"/g, "")
-    : "";
-  const app_certificateis = sessionStorage.getItem("app_certificate")
-    ? sessionStorage.getItem("app_certificate").replace(/"/g, "")
-    : "";
+  const [adminName, setAdminName] = useState(
+    localStorage.getItem("admin_name")
+  );
+  const [adminId, setAdminId] = useState(localStorage.getItem("admin_id"));
+  const [sessionStartTime, setSessionStartTime] = useState(null);
+
+  const [channelNameis, setChannelNameis] = useState("");
+  const [app_certificateis, setAppCertificateis] = useState("");
+
+  useEffect(() => {
+    const channelName =
+      sessionStorage.getItem("channel_name")?.replace(/"/g, "") || "";
+    const appCertificate =
+      sessionStorage.getItem("app_certificate")?.replace(/"/g, "") || "";
+    const userId = localStorage.getItem("admin_id");
+    const userName = localStorage.getItem("admin_name");
+    setAdminName(userName);
+    setAdminId(userId);
+    setChannelNameis(channelName);
+    setAppCertificateis(appCertificate);
+  }, []);
 
   const client = useRef(null);
   const localAudioTrack = useRef(null);
@@ -47,6 +61,39 @@ export default function Audiocallpre() {
     };
   }, []);
 
+  // Set up volume indicator listener once session starts
+  useEffect(() => {
+    if (!isSessionStarted) return;
+    // Enable the audio volume indicator
+    client.current.enableAudioVolumeIndicator();
+    console.log("Audio volume indicator enabled.");
+
+    // Listen for volume indicator events
+    client.current.on("volume-indicator", (volumes) => {
+      console.log("Volume indicator event:", volumes);
+      const SPEAKING_THRESHOLD = 50; // Adjust threshold as needed
+      volumes.forEach(({ uid, level }) => {
+        console.log(
+          `User ${uid} level: ${level} - speaking: ${
+            level > SPEAKING_THRESHOLD
+          }`
+        );
+        setParticipants((prev) =>
+          prev.map((p) => {
+            if (p.uid === uid) {
+              return { ...p, isSpeaking: level > SPEAKING_THRESHOLD };
+            }
+            return p;
+          })
+        );
+      });
+    });
+
+    return () => {
+      client.current.off("volume-indicator");
+    };
+  }, [isSessionStarted]);
+
   // Polling effect to check if the user has been kicked
   useEffect(() => {
     if (!isSessionStarted) return;
@@ -65,7 +112,7 @@ export default function Audiocallpre() {
       } catch (error) {
         console.error("Error checking participant status:", error);
       }
-    }, 5000); // Check every 5 seconds
+    }, 4000); // Check every 5 seconds
 
     return () => clearInterval(interval);
   }, [isSessionStarted, channelNameis]);
@@ -132,6 +179,7 @@ export default function Audiocallpre() {
   };
 
   const handleUserLeft = (user) => {
+    console.log("User left:", user);
     if (remoteUserAudioStates.current[user.uid]) {
       delete remoteUserAudioStates.current[user.uid];
     }
@@ -146,7 +194,7 @@ export default function Audiocallpre() {
       // Create meeting on backend (if needed)
       const response = await axios.post(`${API_URL}/meetings/create`, {
         meetingName: meetingName,
-        adminName: `${adminname}`,
+        adminName: `${adminName}`,
         id: sessionStorage.getItem("adminid"),
       });
 
@@ -157,7 +205,7 @@ export default function Audiocallpre() {
       client.current.setClientRole("host");
       await client.current.join(APP_ID, channelName, token, adminUid);
 
-      userNamesRef.current[adminUid] = adminname;
+      userNamesRef.current[adminUid] = adminName;
 
       localAudioTrack.current = await AgoraRTC.createMicrophoneAudioTrack();
       await client.current.publish([localAudioTrack.current]);
@@ -165,7 +213,7 @@ export default function Audiocallpre() {
       setParticipants([
         {
           uid: adminUid,
-          name: `${adminname}`,
+          name: `${adminName}`,
           isLocal: true,
           isAdmin: true,
           isSpeaking: false,
@@ -173,16 +221,48 @@ export default function Audiocallpre() {
         },
       ]);
 
+      // Record the session start time
+      setSessionStartTime(new Date());
       setIsSessionStarted(true);
+      console.log("Session started successfully");
     } catch (error) {
       console.error("Error starting session:", error);
       setError(
         error.response?.data?.error ||
-        error.message ||
-        "Failed to start session"
+          error.message ||
+          "Failed to start session"
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const saveCallHistory = async (callDurationMinutes) => {
+    try {
+      // Format current date as YYYY-MM-DD
+      const today = new Date();
+      const formattedDate = today.toISOString().split("T")[0];
+
+      // Calculate approximate cost ($0.50 per minute)
+      // const cost = (callDurationMinutes * 0.5).toFixed(2);
+
+      const historyData = {
+        name: adminName || "Unknown User",
+        date: formattedDate,
+        calltime: callDurationMinutes,
+        // cost: cost,
+        userid: adminId,
+      };
+
+      console.log("Saving call history:", historyData);
+
+      await axios.post(
+        `${import.meta.env.VITE_APP_API_URL}/superadmin/savehistory`,
+        historyData
+      );
+      console.log("Call history saved successfully");
+    } catch (error) {
+      console.error("Error saving call history:", error);
     }
   };
 
@@ -191,6 +271,16 @@ export default function Audiocallpre() {
     setLeft(true);
 
     try {
+      // Calculate call duration if session was started
+      if (isSessionStarted && sessionStartTime) {
+        const endTime = new Date();
+        const durationMs = endTime - sessionStartTime;
+        const durationMinutes = durationMs / (1000 * 60); // Convert ms to minutes
+
+        // Save call history to the API
+        await saveCallHistory(durationMinutes);
+      }
+
       await axios.post(`${API_URL}/meetings/update`, {
         isActive: false,
         channelName: channelNameis,
@@ -278,10 +368,11 @@ export default function Audiocallpre() {
       <div className="flex space-x-4 w-full justify-center mt-16">
         <button
           onClick={toggleMute}
-          className={`p-3 rounded-full ${isMuted
-            ? "bg-red-500 hover:bg-red-600"
-            : "bg-blue-500 hover:bg-blue-600"
-            } transition-colors duration-200`}
+          className={`p-3 rounded-full ${
+            isMuted
+              ? "bg-red-500 hover:bg-red-600"
+              : "bg-blue-500 hover:bg-blue-600"
+          } transition-colors duration-200`}
         >
           {isMuted ? (
             <svg
@@ -365,13 +456,16 @@ export default function Audiocallpre() {
                 <p className="text-blue-100">Active Call</p>
                 <p className="text-blue-100">Channel: {channelName}</p>
               </div>
+
               <div className="flex flex-row overflow-x-auto gap-5 justify-center">
                 {participants
                   .filter((p) => !p.isLocal)
                   .map((participant) => (
                     <div
                       key={participant.uid}
-                      className={`bg-white rounded-2xl shadow-lg p-6 w-80 transition-all duration-300 hover:shadow-xl border border-blue-100`}
+                      className={`bg-white rounded-2xl shadow-lg p-6 w-80 transition-all duration-300 hover:shadow-xl border border-blue-100 ${
+                        participant.isSpeaking ? "blink" : ""
+                      }`}
                     >
                       <div className="flex flex-col items-center space-y-4">
                         <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
@@ -388,10 +482,11 @@ export default function Audiocallpre() {
                               onClick={() =>
                                 toggleParticipantMute(participant.uid)
                               }
-                              className={`text-white py-2 px-4 rounded ${participant.isMuted
-                                ? "bg-green-600 hover:bg-green-700"
-                                : "bg-blue-600 hover:bg-blue-700"
-                                }`}
+                              className={`text-white py-2 px-4 rounded ${
+                                participant.isMuted
+                                  ? "bg-green-600 hover:bg-green-700"
+                                  : "bg-blue-600 hover:bg-blue-700"
+                              }`}
                             >
                               {participant.isMuted ? "Unmute" : "Mute"}
                             </button>
@@ -408,8 +503,11 @@ export default function Audiocallpre() {
                         </div>
                         <div className="flex items-center space-x-2 w-full justify-center">
                           <div
-                            className={`w-4 h-4 rounded-full ${participant.isMuted ? "bg-red-500" : "bg-green-500"
-                              }`}
+                            className={`w-4 h-4 rounded-full ${
+                              participant.isMuted
+                                ? "bg-red-500"
+                                : "bg-green-500"
+                            }`}
                           />
                           <span className="text-sm text-gray-500">
                             {participant.isMuted ? "Muted" : "Active"}
@@ -424,21 +522,35 @@ export default function Audiocallpre() {
         )}
 
         <style jsx>{`
-        @keyframes zoomInOut {
-          0%,
-          100% {
-            transform: scale(1);
+          @keyframes zoomInOut {
+            0%,
+            100% {
+              transform: scale(1);
+            }
+            50% {
+              transform: scale(1.1);
+            }
           }
-          50% {
-            transform: scale(1.1);
+          .animate-zoomInOut {
+            animation: zoomInOut 8s ease-in-out infinite;
           }
-        }
-        .animate-zoomInOut {
-          animation: zoomInOut 8s ease-in-out infinite;
-        }
-      `}</style>
+          .blink {
+            animation: blinkAnimation 1s infinite;
+            border: 2px solid red !important;
+          }
+          @keyframes blinkAnimation {
+            0% {
+              border-color: red;
+            }
+            50% {
+              border-color: yellow;
+            }
+            100% {
+              border-color: red;
+            }
+          }
+        `}</style>
       </div>
     </>
-
   );
 }
