@@ -20,6 +20,9 @@ export default function Audiocallpre() {
   const channelNameis = sessionStorage.getItem("channel_name")
     ? sessionStorage.getItem("channel_name").replace(/"/g, "")
     : "";
+  const app_certificateis = sessionStorage.getItem("app_certificate")
+    ? sessionStorage.getItem("app_certificate").replace(/"/g, "")
+    : "";
 
   const client = useRef(null);
   const localAudioTrack = useRef(null);
@@ -252,6 +255,7 @@ export default function Audiocallpre() {
         channelName: channelNameis,
         participantUid: uid,
         adminUid: localUidRef.current,
+        app_certificateis,
       });
 
       setParticipants((prev) => prev.filter((p) => p.uid !== uid));
