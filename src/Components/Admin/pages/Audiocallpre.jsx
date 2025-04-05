@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import AgoraRTC from "agora-rtc-sdk-ng";
 import axios from "axios";
-import Navbar from './Navbar';
+import Navbar from "./Navbar";
 import image from "../../../assets/startsession.webp";
 
-// Agora App ID
-const APP_ID = sessionStorage.getItem("app_id"); // Your Agora App ID
+// Agora App ID - with null check and default value
+// Add a default empty string to avoid null
 const API_URL = `${import.meta.env.VITE_APP_API_URL}/call`; // Your backend API URL
 
 export default function Audiocallpre() {
@@ -13,34 +13,40 @@ export default function Audiocallpre() {
   const [isMuted, setIsMuted] = useState(false);
   const [participants, setParticipants] = useState([]);
   const [meetingName, setMeetingName] = useState("Team Meeting");
+  const [appId, setAppId] = useState(null);
   const [channelName, setChannelName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [left, setLeft] = useState(false);
   const [adminName, setAdminName] = useState(
-    localStorage.getItem("admin_name")
+    localStorage.getItem("admin_name") || "Admin"
   );
-  const [adminId, setAdminId] = useState(localStorage.getItem("admin_id"));
+  const [adminId, setAdminId] = useState(
+    localStorage.getItem("admin_id") || ""
+  );
   const [sessionStartTime, setSessionStartTime] = useState(null);
 
   const [channelNameis, setChannelNameis] = useState("");
   const [app_certificateis, setAppCertificateis] = useState("");
 
   useEffect(() => {
-    const channelNameValue = sessionStorage.getItem("channel_name");
-    const appCertificateValue = sessionStorage.getItem("app_certificate");
+    const channelNameValue = sessionStorage.getItem("channel_name") || "";
+    const appCertificateValue = sessionStorage.getItem("app_certificate") || "";
+    const appIdValue = sessionStorage.getItem("app_id");
+    // const APP_ID = sessionStorage.getItem("app_id")
+    setAppId(appIdValue);
 
-    const channelName =
-      channelNameValue != null ? channelNameValue.replace(/"/g, "") : "";
-    const appCertificate =
-      appCertificateValue != null ? appCertificateValue.replace(/"/g, "") : "";
+    // Alert if app_id is missing
+    if (!appIdValue) {
+      console.error("App ID is missing in sessionStorage");
+      setError("Agora App ID is missing. Please check your configuration.");
+    }
 
-    const userId = localStorage.getItem("admin_id");
-    const userName = localStorage.getItem("admin_name");
+    const userId = localStorage.getItem("admin_id") || "";
+    const userName = localStorage.getItem("admin_name") || "Admin";
     setAdminName(userName);
     setAdminId(userId);
-    setChannelNameis(channelName);
-    setAppCertificateis(appCertificate);
+    setChannelNameis(channelNameValue);
+    setAppCertificateis(appCertificateValue);
   }, []);
 
   const client = useRef(null);
@@ -79,7 +85,8 @@ export default function Audiocallpre() {
       const SPEAKING_THRESHOLD = 50; // Adjust threshold as needed
       volumes.forEach(({ uid, level }) => {
         console.log(
-          `User ${uid} level: ${level} - speaking: ${level > SPEAKING_THRESHOLD
+          `User ${uid} level: ${level} - speaking: ${
+            level > SPEAKING_THRESHOLD
           }`
         );
         setParticipants((prev) =>
@@ -116,7 +123,7 @@ export default function Audiocallpre() {
       } catch (error) {
         console.error("Error checking participant status:", error);
       }
-    }, 4000); // Check every 5 seconds
+    }, 4000); // Check every 4 seconds
 
     return () => clearInterval(interval);
   }, [isSessionStarted, channelNameis]);
@@ -167,7 +174,7 @@ export default function Audiocallpre() {
   const fetchUserMetadata = async (uid) => {
     try {
       const response = await axios.get(
-        `${API_URL}/meetings/user-info${channelNameis}/${uid}`
+        `${API_URL}/meetings/user-info/${channelNameis}/${uid}`
       );
       if (response.data && response.data.userName) {
         userNamesRef.current[uid] = response.data.userName;
@@ -194,20 +201,34 @@ export default function Audiocallpre() {
     setLoading(true);
     setError("");
 
+    // Check if App ID is available
+    if (!appId) {
+      setError("Agora App ID is missing. Please check your configuration.");
+      setLoading(false);
+      return;
+    }
+
     try {
       // Create meeting on backend (if needed)
       const response = await axios.post(`${API_URL}/meetings/create`, {
         meetingName: meetingName,
         adminName: `${adminName}`,
-        id: sessionStorage.getItem("adminid"),
+        id: sessionStorage.getItem("adminid") || adminId,
       });
 
       const { channelName, token, adminUid } = response.data;
-      setChannelName(channelNameis);
+      setChannelName(channelNameis || channelName);
       localUidRef.current = adminUid;
 
-      client.current.setClientRole("host");
-      await client.current.join(APP_ID, channelName, token, adminUid);
+      // Remove the setClientRole call - not compatible with RTC mode
+      // client.current.setClientRole("host"); // REMOVED THIS LINE
+
+      await client.current.join(
+        appId,
+        channelName || channelNameis,
+        token,
+        adminUid
+      );
 
       userNamesRef.current[adminUid] = adminName;
 
@@ -233,8 +254,8 @@ export default function Audiocallpre() {
       console.error("Error starting session:", error);
       setError(
         error.response?.data?.error ||
-        error.message ||
-        "Failed to start session"
+          error.message ||
+          "Failed to start session"
       );
     } finally {
       setLoading(false);
@@ -247,14 +268,10 @@ export default function Audiocallpre() {
       const today = new Date();
       const formattedDate = today.toISOString().split("T")[0];
 
-      // Calculate approximate cost ($0.50 per minute)
-      // const cost = (callDurationMinutes * 0.5).toFixed(2);
-
       const historyData = {
         name: adminName || "Unknown User",
         date: formattedDate,
         calltime: callDurationMinutes,
-        // cost: cost,
         userid: adminId,
       };
 
@@ -272,7 +289,7 @@ export default function Audiocallpre() {
 
   const cleanupSession = async () => {
     console.log("Cleaning up session...");
-    setLeft(true);
+    // setLeft(true);
 
     try {
       // Calculate call duration if session was started
@@ -294,6 +311,7 @@ export default function Audiocallpre() {
       if (localAudioTrack.current) {
         localAudioTrack.current.stop();
         localAudioTrack.current.close();
+        localAudioTrack.current = null;
       }
 
       if (client.current && isSessionStarted) {
@@ -369,10 +387,7 @@ export default function Audiocallpre() {
 
   return (
     <>
-
-      {!isSessionStarted && (
-        <Navbar />
-      )}
+      {!isSessionStarted && <Navbar />}
 
       {isSessionStarted && (
         <div className="px-10 flex space-x-4 w-full justify-end mt-5">
@@ -387,7 +402,6 @@ export default function Audiocallpre() {
           </button>
         </div>
       )}
-
 
       <div className="w-full md:w-5/6 h-[70vh] mx-auto my-2 bg-white rounded-xl overflow-hidden transition-all duration-300 shadow-2xl flex flex-col">
         {!isSessionStarted ? (
@@ -418,7 +432,9 @@ export default function Audiocallpre() {
               <div className="mb-4 text-center">
                 <h2 className="text-xl font-bold text-white">{meetingName}</h2>
                 <p className="text-blue-100">Active Call</p>
-                <p className="text-blue-100">Channel: {channelName}</p>
+                <p className="text-blue-100">
+                  Channel: {channelName || channelNameis}
+                </p>
               </div>
 
               <div className="flex flex-row overflow-x-auto gap-5 justify-center">
@@ -427,8 +443,9 @@ export default function Audiocallpre() {
                   .map((participant) => (
                     <div
                       key={participant.uid}
-                      className={`bg-white rounded-2xl shadow-lg p-6 w-80 transition-all duration-300 hover:shadow-xl border border-blue-100 ${participant.isSpeaking ? "blink" : ""
-                        }`}
+                      className={`bg-white rounded-2xl shadow-lg p-6 w-80 transition-all duration-300 hover:shadow-xl border border-blue-100 ${
+                        participant.isSpeaking ? "blink" : ""
+                      }`}
                     >
                       <div className="flex flex-col items-center space-y-4">
                         <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
@@ -445,10 +462,11 @@ export default function Audiocallpre() {
                               onClick={() =>
                                 toggleParticipantMute(participant.uid)
                               }
-                              className={`text-white py-2 px-4 rounded ${participant.isMuted
-                                ? "bg-green-600 hover:bg-green-700"
-                                : "bg-blue-600 hover:bg-blue-700"
-                                }`}
+                              className={`text-white py-2 px-4 rounded ${
+                                participant.isMuted
+                                  ? "bg-green-600 hover:bg-green-700"
+                                  : "bg-blue-600 hover:bg-blue-700"
+                              }`}
                             >
                               {participant.isMuted ? "Unmute" : "Mute"}
                             </button>
@@ -465,10 +483,11 @@ export default function Audiocallpre() {
                         </div>
                         <div className="flex items-center space-x-2 w-full justify-center">
                           <div
-                            className={`w-4 h-4 rounded-full ${participant.isMuted
-                              ? "bg-red-500"
-                              : "bg-green-500"
-                              }`}
+                            className={`w-4 h-4 rounded-full ${
+                              participant.isMuted
+                                ? "bg-red-500"
+                                : "bg-green-500"
+                            }`}
                           />
                           <span className="text-sm text-gray-500">
                             {participant.isMuted ? "Muted" : "Active"}
@@ -517,10 +536,11 @@ export default function Audiocallpre() {
         <div className="flex space-x-4 w-full justify-center">
           <button
             onClick={toggleMute}
-            className={`p-3 rounded-full ${isMuted
-              ? "bg-red-500 hover:bg-red-600"
-              : "bg-blue-500 hover:bg-blue-600"
-              } transition-colors duration-200`}
+            className={`p-3 rounded-full ${
+              isMuted
+                ? "bg-red-500 hover:bg-red-600"
+                : "bg-blue-500 hover:bg-blue-600"
+            } transition-colors duration-200`}
           >
             {isMuted ? (
               <svg
@@ -563,8 +583,6 @@ export default function Audiocallpre() {
           </button>
         </div>
       )}
-
-
     </>
   );
 }

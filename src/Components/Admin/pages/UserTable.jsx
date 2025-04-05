@@ -15,7 +15,6 @@ import Navbar from "./Navbar";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import "sweetalert2/src/sweetalert2.scss";
 
-
 export default function UserTable() {
   const navigate = useNavigate();
 
@@ -434,9 +433,7 @@ export default function UserTable() {
                   <input
                     type="text"
                     readOnly
-                    value={sessionStorage
-                      .getItem("channel_name")
-                      .replace(/"/g, "")}
+                    value={sessionStorage.getItem("channel_name")}
                     name="Channelid"
                     placeholder="Channel ID"
                     // onChange={handleChange}

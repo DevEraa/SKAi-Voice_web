@@ -50,7 +50,7 @@ export default function AdminLogin() {
       let errorMessage = err.message || "Login failed. Please try again.";
 
   // Remove "Error: " prefix if present
-  errorMessage = errorMessage.replace(/^Error:\s*/, "");
+  errorMessage = errorMessage?.replace(/^Error:\s*/, "");
 
   setError(errorMessage); // Set cleaned-up error message
   console.error(err);

@@ -9,11 +9,10 @@ import "sweetalert2/src/sweetalert2.scss";
 import superadminApp from "../../SuperAdmin/store/hook";
 import axios from "axios";
 
-
 const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { updateAdmin, getAdminById } = superadminApp();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -71,15 +70,15 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
       const id = localStorage.getItem("admin_id");
       try {
         const response = await getAdminById(id);
-        setLoguserlimit(response?.adminlimits)
-        setLogadminid(response?.username)
-        console.log("response", response)
+        setLoguserlimit(response?.adminlimits);
+        setLogadminid(response?.username);
+        console.log("response", response);
       } catch (error) {
-        console.log("error", error)
+        console.log("error", error);
       }
-    }
+    };
     admin();
-  }, [])
+  }, []);
 
   // const handleSubmituser = async (e) => {
   //   e.preventDefault();
@@ -663,9 +662,7 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
                   <input
                     type="text"
                     readOnly
-                    value={sessionStorage
-                      .getItem("channel_name")
-                      .replace(/"/g, "")}
+                    value={sessionStorage.getItem("channel_name")}
                     name="Channelid"
                     // placeholder="Channel ID"
                     // onChange={handleChange}
@@ -808,18 +805,35 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
                 className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
                 onClick={() => setPasswordresetpopup(false)}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
               <div className="text-center">
-                <h3 className="mb-4 text-xl font-semibold text-gray-800">Reset Password</h3>
+                <h3 className="mb-4 text-xl font-semibold text-gray-800">
+                  Reset Password
+                </h3>
 
                 {/* New Password Field */}
                 <div className="mb-4 relative">
                   <input
                     type={showPassword ? "text" : "password"}
-                    onChange={(e) => setPasswordreset({ ...Passwordreset, password: e.target.value })}
+                    onChange={(e) =>
+                      setPasswordreset({
+                        ...Passwordreset,
+                        password: e.target.value,
+                      })
+                    }
                     placeholder="New Password"
                     className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -828,7 +842,11 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
                     className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
 
@@ -836,7 +854,12 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
                 <div className="mb-6 relative">
                   <input
                     type={showConfirmPassword ? "text" : "password"}
-                    onChange={(e) => setPasswordreset({ ...Passwordreset, conformpassword: e.target.value })}
+                    onChange={(e) =>
+                      setPasswordreset({
+                        ...Passwordreset,
+                        conformpassword: e.target.value,
+                      })
+                    }
                     placeholder="Confirm New Password"
                     className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -845,7 +868,11 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
                     className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
-                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
 
