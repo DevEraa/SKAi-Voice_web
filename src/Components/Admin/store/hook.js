@@ -11,9 +11,9 @@ const adminHooks = () => {
             if (response.message === "✅ Login successful!") {
                 console.log("Login successful");
                 sessionStorage.setItem('token', JSON.stringify(response));
-                sessionStorage.setItem('channel_name', JSON.stringify(response.channel_name));
+                sessionStorage.setItem('channel_name', (response.channel_name));
                 sessionStorage.setItem('app_id', JSON.stringify(response.app_id));
-                sessionStorage.setItem('app_certificate', JSON.stringify(response.token_id));
+                sessionStorage.setItem('app_certificate', (response.token_id));
                 sessionStorage.setItem('adminid', JSON.stringify(response.id));
 
             } else {
