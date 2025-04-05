@@ -26,16 +26,13 @@ export default function Audiocallpre() {
   const [app_certificateis, setAppCertificateis] = useState("");
 
   useEffect(() => {
-    // Fixed the null issue by using proper null checks
     const channelNameValue = sessionStorage.getItem("channel_name");
     const appCertificateValue = sessionStorage.getItem("app_certificate");
 
-    const channelName = channelNameValue
-      ? channelNameValue.replace(/"/g, "")
-      : "";
-    const appCertificate = appCertificateValue
-      ? appCertificateValue.replace(/"/g, "")
-      : "";
+    const channelName =
+      channelNameValue != null ? channelNameValue.replace(/"/g, "") : "";
+    const appCertificate =
+      appCertificateValue != null ? appCertificateValue.replace(/"/g, "") : "";
 
     const userId = localStorage.getItem("admin_id");
     const userName = localStorage.getItem("admin_name");
