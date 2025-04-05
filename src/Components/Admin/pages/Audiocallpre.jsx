@@ -174,7 +174,7 @@ export default function Audiocallpre() {
   const fetchUserMetadata = async (uid) => {
     try {
       const response = await axios.get(
-        `${API_URL}/meetings/user-info/${channelNameis}/${uid}`
+        `${API_URL}/meetings/user-info${channelNameis}/${uid}`
       );
       if (response.data && response.data.userName) {
         userNamesRef.current[uid] = response.data.userName;
