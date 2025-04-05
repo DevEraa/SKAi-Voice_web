@@ -27,10 +27,17 @@ export default function Audiocallpre() {
   const [app_certificateis, setAppCertificateis] = useState("");
 
   useEffect(() => {
-    const channelName =
-      sessionStorage.getItem("channel_name")?.replace(/"/g, "") || "";
-    const appCertificate =
-      sessionStorage.getItem("app_certificate")?.replace(/"/g, "") || "";
+    // Fixed the null issue by using proper null checks
+    const channelNameValue = sessionStorage.getItem("channel_name");
+    const appCertificateValue = sessionStorage.getItem("app_certificate");
+
+    const channelName = channelNameValue
+      ? channelNameValue.replace(/"/g, "")
+      : "";
+    const appCertificate = appCertificateValue
+      ? appCertificateValue.replace(/"/g, "")
+      : "";
+
     const userId = localStorage.getItem("admin_id");
     const userName = localStorage.getItem("admin_name");
     setAdminName(userName);
@@ -163,7 +170,7 @@ export default function Audiocallpre() {
   const fetchUserMetadata = async (uid) => {
     try {
       const response = await axios.get(
-        `${API_URL}/meetings/user-info/${channelNameis}/${uid}`
+        `${API_URL}/meetings/user-info${channelNameis}/${uid}`
       );
       if (response.data && response.data.userName) {
         userNamesRef.current[uid] = response.data.userName;
