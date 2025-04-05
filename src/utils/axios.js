@@ -10,8 +10,6 @@ export const useAdminAppService = () => {
 
     adminAppService.interceptors.request.use((config) => {
         config.headers.Authorization = userData.token ? `Bearer ${userData.token}` : '';
-        // config.headers.Accept = '*/*';
-        // config.headers['Custom-Header'] = 'CustomHeaderValue';
         config.headers['domainName'] = 'skyvoice';
         return config;
     });

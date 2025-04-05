@@ -113,7 +113,7 @@ export default function Audiocallpre() {
       try {
         // Call backend to check participant status
         const response = await axios.get(
-          `${API_URL}/meetings/check-participant-status/${channelNameis}/${localUidRef.current}`
+          `${API_URL}/meetings/check-participant-status${channelNameis}/${localUidRef.current}`
         );
         // If the response indicates the user has been kicked, clean up the session.
         if (response.data.kicked) {
