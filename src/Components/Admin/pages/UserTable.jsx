@@ -94,7 +94,6 @@ export default function UserTable() {
     username: "",
     tokenid: "",
     Channelid: "",
-    mobilenumber: "",
     password: "",
     confirmPassword: "",
   });

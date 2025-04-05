@@ -7,7 +7,7 @@ export default function AdminDashboard() {
   console.log("modalOpen",modalOpen)
   return (
    <>
-   <Navbar modalOpen={modalOpen} />
+   {/* <Navbar modalOpen={modalOpen} /> */}
     <Audiocallpre />
    </>
   )
