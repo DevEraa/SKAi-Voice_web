@@ -159,7 +159,7 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
             // Update Totaluser in state and local storage
 
             setModalOpen(false);
-            setuserModalOpen((prev) => !prev);
+            // setuserModalOpen((prev) => !prev);
           }
         } catch (error) {
           console.error(error.message);
