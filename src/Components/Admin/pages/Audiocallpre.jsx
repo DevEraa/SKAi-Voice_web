@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import AgoraRTC from "agora-rtc-sdk-ng";
 import axios from "axios";
+import Navbar from './Navbar';
 import image from "../../../assets/startsession.webp";
 
 // Agora App ID
@@ -74,8 +75,7 @@ export default function Audiocallpre() {
       const SPEAKING_THRESHOLD = 50; // Adjust threshold as needed
       volumes.forEach(({ uid, level }) => {
         console.log(
-          `User ${uid} level: ${level} - speaking: ${
-            level > SPEAKING_THRESHOLD
+          `User ${uid} level: ${level} - speaking: ${level > SPEAKING_THRESHOLD
           }`
         );
         setParticipants((prev) =>
@@ -229,8 +229,8 @@ export default function Audiocallpre() {
       console.error("Error starting session:", error);
       setError(
         error.response?.data?.error ||
-          error.message ||
-          "Failed to start session"
+        error.message ||
+        "Failed to start session"
       );
     } finally {
       setLoading(false);
@@ -365,65 +365,25 @@ export default function Audiocallpre() {
 
   return (
     <>
-      <div className="flex space-x-4 w-full justify-center mt-16">
-        <button
-          onClick={toggleMute}
-          className={`p-3 rounded-full ${
-            isMuted
-              ? "bg-red-500 hover:bg-red-600"
-              : "bg-blue-500 hover:bg-blue-600"
-          } transition-colors duration-200`}
-        >
-          {isMuted ? (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="lucide lucide-mic-off"
-            >
-              <line x1="2" x2="22" y1="2" y2="22" />
-              <path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2" />
-              <path d="M5 10v2a7 7 0 0 0 12 5" />
-              <path d="M15 9.34V5a3 3 0 0 0-5.68-1.33" />
-              <path d="M9 9v3a3 3 0 0 0 5.12 2.12" />
-              <line x1="12" x2="12" y1="19" y2="22" />
-            </svg>
-          ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="lucide lucide-mic"
-            >
-              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-              <line x1="12" x2="12" y1="19" y2="22" />
-            </svg>
-          )}
-        </button>
 
-        <button
-          className="bg-blue-100 hover:bg-blue-200 p-3 rounded-full transition-colors duration-200"
-          onClick={() => {
-            console.log("Ending session...");
-            cleanupSession();
-          }}
-        >
-          leave
-        </button>
-      </div>
+      {!isSessionStarted && (
+        <Navbar />
+      )}
+
+      {isSessionStarted && (
+        <div className="px-10 flex space-x-4 w-full justify-end mt-5">
+          <button
+            className="bg-blue-100 hover:bg-blue-200 p-3 rounded-full transition-colors duration-200"
+            onClick={() => {
+              console.log("Ending session...");
+              cleanupSession();
+            }}
+          >
+            End Session
+          </button>
+        </div>
+      )}
+
 
       <div className="w-full md:w-5/6 h-[70vh] mx-auto my-2 bg-white rounded-xl overflow-hidden transition-all duration-300 shadow-2xl flex flex-col">
         {!isSessionStarted ? (
@@ -463,9 +423,8 @@ export default function Audiocallpre() {
                   .map((participant) => (
                     <div
                       key={participant.uid}
-                      className={`bg-white rounded-2xl shadow-lg p-6 w-80 transition-all duration-300 hover:shadow-xl border border-blue-100 ${
-                        participant.isSpeaking ? "blink" : ""
-                      }`}
+                      className={`bg-white rounded-2xl shadow-lg p-6 w-80 transition-all duration-300 hover:shadow-xl border border-blue-100 ${participant.isSpeaking ? "blink" : ""
+                        }`}
                     >
                       <div className="flex flex-col items-center space-y-4">
                         <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
@@ -482,11 +441,10 @@ export default function Audiocallpre() {
                               onClick={() =>
                                 toggleParticipantMute(participant.uid)
                               }
-                              className={`text-white py-2 px-4 rounded ${
-                                participant.isMuted
-                                  ? "bg-green-600 hover:bg-green-700"
-                                  : "bg-blue-600 hover:bg-blue-700"
-                              }`}
+                              className={`text-white py-2 px-4 rounded ${participant.isMuted
+                                ? "bg-green-600 hover:bg-green-700"
+                                : "bg-blue-600 hover:bg-blue-700"
+                                }`}
                             >
                               {participant.isMuted ? "Unmute" : "Mute"}
                             </button>
@@ -503,11 +461,10 @@ export default function Audiocallpre() {
                         </div>
                         <div className="flex items-center space-x-2 w-full justify-center">
                           <div
-                            className={`w-4 h-4 rounded-full ${
-                              participant.isMuted
-                                ? "bg-red-500"
-                                : "bg-green-500"
-                            }`}
+                            className={`w-4 h-4 rounded-full ${participant.isMuted
+                              ? "bg-red-500"
+                              : "bg-green-500"
+                              }`}
                           />
                           <span className="text-sm text-gray-500">
                             {participant.isMuted ? "Muted" : "Active"}
@@ -551,6 +508,59 @@ export default function Audiocallpre() {
           }
         `}</style>
       </div>
+
+      {isSessionStarted && (
+        <div className="flex space-x-4 w-full justify-center">
+          <button
+            onClick={toggleMute}
+            className={`p-3 rounded-full ${isMuted
+              ? "bg-red-500 hover:bg-red-600"
+              : "bg-blue-500 hover:bg-blue-600"
+              } transition-colors duration-200`}
+          >
+            {isMuted ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="lucide lucide-mic-off"
+              >
+                <line x1="2" x2="22" y1="2" y2="22" />
+                <path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2" />
+                <path d="M5 10v2a7 7 0 0 0 12 5" />
+                <path d="M15 9.34V5a3 3 0 0 0-5.68-1.33" />
+                <path d="M9 9v3a3 3 0 0 0 5.12 2.12" />
+                <line x1="12" x2="12" y1="19" y2="22" />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="lucide lucide-mic"
+              >
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <line x1="12" x2="12" y1="19" y2="22" />
+              </svg>
+            )}
+          </button>
+        </div>
+      )}
+
+
     </>
   );
 }
