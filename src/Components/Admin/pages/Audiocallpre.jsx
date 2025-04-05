@@ -392,7 +392,7 @@ export default function Audiocallpre() {
       )}
 
 
-      <div className="w-full md:w-5/6 h-[70vh] mx-auto my-2 bg-white rounded-xl overflow-hidden transition-all duration-300 shadow-2xl flex flex-col">
+      <div className="w-full md:w-5/6 h-[70vh]  mx-auto my-12 bg-white rounded-xl overflow-hidden transition-all duration-300 shadow-2xl flex flex-col">
         {!isSessionStarted ? (
           <>
             <div className="flex-1 flex items-center justify-center p-8">
