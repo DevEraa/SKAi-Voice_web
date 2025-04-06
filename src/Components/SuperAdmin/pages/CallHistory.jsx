@@ -3,6 +3,8 @@ import Navbar from './Navbar';
 import superadminApp from "../store/hook";
 import { Search, Lock, Unlock, Edit, Trash2, FileText, Eye } from "lucide-react";
 import axios from 'axios';
+import Swal from "sweetalert2/dist/sweetalert2.js";
+import "sweetalert2/src/sweetalert2.scss";
 
 export default function CallHistory() {
     const { adminhistory, deleteadminhistory } = superadminApp();
@@ -14,7 +16,7 @@ export default function CallHistory() {
     const recordsPerPage = 8;
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-
+    const [selectedDetailIds, setSelectedDetailIds] = useState([]);
     const [users, setUsers] = useState([]);
     const [aggregatedUsers, setAggregatedUsers] = useState([]);
 
@@ -61,19 +63,19 @@ export default function CallHistory() {
     const currentRecords = filteredUsers.slice(indexOfFirstRecord, indexOfLastRecord);
 
 
-
+    const fetchlist = async () => {
+        try {
+            const response = await adminhistory();
+            setUsers(response.Histoty);
+            setAggregatedUsers(aggregateUsers(response.Histoty));
+        } catch (error) {
+            console.log(error);
+        }
+    };
     useEffect(() => {
-        const fetchlist = async () => {
-            try {
-                const response = await adminhistory();
-                setUsers(response.Histoty);
-                setAggregatedUsers(aggregateUsers(response.Histoty));
-            } catch (error) {
-                console.log(error);
-            }
-        };
+       
         fetchlist();
-    }, [deletepopup]);
+    }, [deletepopup, deletepopup]);
 
     const deletehistory = (id) => {
         console.log(id);
@@ -86,9 +88,16 @@ export default function CallHistory() {
         const id = userToDelete;
         const deletehistory = await deleteadminhistory(id);
         console.log(deletehistory)
+        Swal.fire({
+            title: "Successfull !",
+            text: "Deleted successfully",
+            icon: "success",
+          });
+        fetchlist();
+        setDeletepopup(false)
     }
 
-    const deletehstory = async() =>{
+    const deletehstory = async () => {
         if (!startDate || !endDate) {
             alert("Please select both start and end dates.");
             return;
@@ -107,52 +116,75 @@ export default function CallHistory() {
                     toDate: new Date(endDate + 'T23:59:59').toISOString()
                 }
             });
-
-            alert(response.data.message || "Deleted successfully");
+            Swal.fire({
+                title: "Successfull !",
+                text: "Deleted successfully",
+                icon: "success",
+              });
+            // alert(response.data.message || "Deleted successfully");
             setStartDate('');
             setEndDate('');
         } catch (err) {
-            console.log("data",data)
+            console.log("data", data)
             console.error(err);
             alert("Error deleting recordings.");
         }
     }
 
+
+    const multipledelete = async() =>{
+        try {
+            await Promise.all(selectedDetailIds.map(id => deleteadminhistory(id)));
+            // alert("Selected records deleted.");
+            Swal.fire({
+                title: "Successfull !",
+                text: "Deleted successfully",
+                icon: "success",
+              });
+            setSelectedDetailIds([]);
+           
+            fetchlist();
+        } catch (err) {
+            console.error(err);
+            alert("Error deleting selected records.");
+        }
+    }
     return (
         <>
             <Navbar />
 
-          
+
+
 
             <div className="container mx-auto p-6 w-full md:w-4/5">
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex gap-4 items-center">
-                    <div>
-                        <label className="text-sm text-gray-700 block mb-1">Start Date</label>
-                        <input
-                            type="date"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                            className="p-2 border rounded-md text-sm"
-                        />
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex gap-4 items-center">
+                        <div>
+                            <label className="text-sm text-gray-700 block mb-1">Start Date</label>
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="p-2 border rounded-md text-sm"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-sm text-gray-700 block mb-1">End Date</label>
+                            <input
+                                type="date"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                className="p-2 border rounded-md text-sm"
+                            />
+                        </div>
                     </div>
-                    <div>
-                        <label className="text-sm text-gray-700 block mb-1">End Date</label>
-                        <input
-                            type="date"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            className="p-2 border rounded-md text-sm"
-                        />
-                    </div>
+                    <button
+                        className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
+                        onClick={deletehstory}
+                    >
+                        Delete by Date
+                    </button>
                 </div>
-                <button
-                    className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
-                    onClick={deletehstory}
-                >
-                    Delete by Date
-                </button>
-            </div>
                 <div className="flex items-center justify-between mb-4">
                     {selectedUser === null && (
                         <div className="relative w-1/3">
@@ -176,6 +208,16 @@ export default function CallHistory() {
                             Back to All Users
                         </button>
                     )}
+                    {selectedUser && selectedDetailIds.length > 0 && (
+                        <div className="mb-4">
+                            <button
+                                onClick={multipledelete}
+                                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
+                            >
+                                Delete Selected ({selectedDetailIds.length})
+                            </button>
+                        </div>
+                    )}
                 </div>
                 <div className="overflow-x-auto shadow-lg rounded-lg">
                     <div className="min-w-full inline-block align-middle">
@@ -190,6 +232,19 @@ export default function CallHistory() {
                                                 <th className="px-6 py-3 text-start text-sm font-semibold">Time</th>
                                                 <th className="px-6 py-3 text-center text-sm font-semibold">Cost</th>
                                                 <th className="px-6 py-3 text-center text-sm font-semibold">Delete</th>
+                                                {selectedUser && (
+                                                    <th className="px-6 py-3 text-center text-sm font-semibold">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={currentRecords.length > 0 && currentRecords.every(user => selectedDetailIds.includes(user.id))}
+                                                            onChange={(e) => {
+                                                                const ids = e.target.checked ? currentRecords.map(u => u.id) : [];
+                                                                setSelectedDetailIds(ids);
+                                                            }}
+                                                        />
+                                                    </th>
+                                                )}
+
                                             </>
                                         ) : (
                                             <>
@@ -234,6 +289,22 @@ export default function CallHistory() {
                                                             <Trash2 size={20} />
                                                         </button>
                                                     </td>
+                                                    {selectedUser && (
+                                                        <td className="px-6 py-4 text-center">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedDetailIds.includes(user.id)}
+                                                                onChange={(e) => {
+                                                                    e.stopPropagation();
+                                                                    const updatedSelection = e.target.checked
+                                                                        ? [...selectedDetailIds, user.id]
+                                                                        : selectedDetailIds.filter(id => id !== user.id);
+                                                                    setSelectedDetailIds(updatedSelection);
+                                                                }}
+                                                            />
+                                                        </td>
+                                                    )}
+
                                                 </>
                                             ) : (
                                                 <>

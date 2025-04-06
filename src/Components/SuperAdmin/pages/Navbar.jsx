@@ -76,6 +76,7 @@ export default function Navbar({ setUserAdded }) {
           icon: "success",
         });
         setModalOpen(false);
+        setUserAdded(true)
       } else {
         Swal.fire({
           icon: "error",
