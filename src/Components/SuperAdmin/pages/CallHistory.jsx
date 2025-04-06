@@ -88,7 +88,7 @@ export default function CallHistory() {
         console.log(deletehistory)
     }
 
-    const deletehistory = async() =>{
+    const deletehstory = async() =>{
         if (!startDate || !endDate) {
             alert("Please select both start and end dates.");
             return;
@@ -148,7 +148,7 @@ export default function CallHistory() {
                 </div>
                 <button
                     className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
-                    onClick={deletehistory}
+                    onClick={deletehstory}
                 >
                     Delete by Date
                 </button>
