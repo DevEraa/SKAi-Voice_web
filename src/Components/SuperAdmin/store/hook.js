@@ -34,7 +34,7 @@ const superadminApp = () => {
 
     const listAdmin = async (pagesize = 10, offset = 0, search = '') => {
         try {
-            const response = await adminAppService.get(`admin/list?pagesize=${pagesize}&offset=${offset}&search=${search}`);
+            const response = await adminAppService.get(`/admin/list?pagesize=${pagesize}&offset=${offset}&search=${search}`);
             return response;
         } catch (error) {
             console.error(error);
@@ -56,7 +56,7 @@ const superadminApp = () => {
 
     const adminhistory = async () => {
         try {
-            const response = await adminAppService.get(`superadmin/gethistory`);
+            const response = await adminAppService.get(`/superadmin/gethistory`);
             return response;
         } catch (error) {
             console.error(error);
@@ -67,7 +67,7 @@ const superadminApp = () => {
 
     const deleteadminhistory = async (id) => {
         try {
-            const response = await adminAppService.delete( `superadmin/deletehistory/${id}`);
+            const response = await adminAppService.delete(`/superadmin/deletehistory/${id}`);
             return response;
         } catch (error) {
             console.error(error);
@@ -91,7 +91,7 @@ const superadminApp = () => {
     }
 
     const deleteAdmin = async (id) => {
-        console.log("userToDelete",id)
+        console.log("userToDelete", id)
         try {
             const response = await adminAppService.delete(`/admin/delete/${id}`);
             if (response.message === "✅ Admin deleted successfully") {
@@ -107,7 +107,7 @@ const superadminApp = () => {
 
     const saveprice = async (price) => {
         try {
-            const response = await adminAppService.post('superadmin/saveprice', price);
+            const response = await adminAppService.post('/superadmin/saveprice', price);
             return response;
         } catch (error) {
             console.error(error);
@@ -118,7 +118,7 @@ const superadminApp = () => {
 
     const getprice = async () => {
         try {
-            const response = await adminAppService.get(`superadmin/getprice`);
+            const response = await adminAppService.get(`/superadmin/getprice`);
             return response;
         } catch (error) {
             console.error(error);
@@ -127,9 +127,27 @@ const superadminApp = () => {
         }
     }
 
+    const deleteAllRecordings = async (values) => {
+        try {
+            const data = {
+                ...values
+            }
+            console.log("data", data)
+            const response = await adminAppService.delete(`/add/recordings/superadmin/delete`, {
+                data: data
+            });
+            return response;
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to delete all recordings");
+            throw new Error(error);
+        }
+    }
+
     return {
         superadminlogin,
         createNewAdmin,
+        deleteAllRecordings,
         listAdmin,
         getAdminById,
         updateAdmin,
