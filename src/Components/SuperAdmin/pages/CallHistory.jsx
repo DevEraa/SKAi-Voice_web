@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react'
 import Navbar from './Navbar';
 import superadminApp from "../store/hook";
 import { Search, Lock, Unlock, Edit, Trash2, FileText, Eye } from "lucide-react";
+import axios from 'axios';
+
 export default function CallHistory() {
     const { adminhistory, deleteadminhistory } = superadminApp();
     const [searchTerm, setSearchTerm] = useState("");
@@ -10,6 +12,8 @@ export default function CallHistory() {
     const [userToDelete, setuserToDelete] = useState();
     const [selectedUser, setSelectedUser] = useState(null);
     const recordsPerPage = 8;
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
 
     const [users, setUsers] = useState([]);
     const [aggregatedUsers, setAggregatedUsers] = useState([]);
@@ -84,11 +88,71 @@ export default function CallHistory() {
         console.log(deletehistory)
     }
 
+    const deletehistory = async() =>{
+        if (!startDate || !endDate) {
+            alert("Please select both start and end dates.");
+            return;
+        }
+        console.log("first", {
+            superadminname: "admin@123",
+            fromDate: new Date(startDate).toISOString(),
+            toDate: new Date(endDate + 'T23:59:59').toISOString()
+        })
+
+        try {
+            const response = await axios.delete('http://demoapi.deveraa.com/v1/add/recordings/superadmin/delete', {
+                data: {
+                    superadminname: "admin@123",
+                    fromDate: new Date(startDate).toISOString(),
+                    toDate: new Date(endDate + 'T23:59:59').toISOString()
+                }
+            });
+
+            alert(response.data.message || "Deleted successfully");
+            setStartDate('');
+            setEndDate('');
+        } catch (err) {
+            console.log("data",data)
+            console.error(err);
+            alert("Error deleting recordings.");
+        }
+    }
+
     return (
         <>
             <Navbar />
-            <div className="container mx-auto p-6 w-full md:w-4/5">
 
+          
+
+            <div className="container mx-auto p-6 w-full md:w-4/5">
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex gap-4 items-center">
+                    <div>
+                        <label className="text-sm text-gray-700 block mb-1">Start Date</label>
+                        <input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="p-2 border rounded-md text-sm"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm text-gray-700 block mb-1">End Date</label>
+                        <input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="p-2 border rounded-md text-sm"
+                        />
+                    </div>
+                </div>
+                <button
+                    className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
+                    onClick={deletehistory}
+                >
+                    Delete by Date
+                </button>
+            </div>
                 <div className="flex items-center justify-between mb-4">
                     {selectedUser === null && (
                         <div className="relative w-1/3">
