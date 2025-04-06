@@ -9,7 +9,7 @@ import "sweetalert2/src/sweetalert2.scss";
 import superadminApp from "../../SuperAdmin/store/hook";
 import axios from "axios";
 
-const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
+const Navbar = ({ setusercreated }) => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -159,6 +159,7 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
             // Update Totaluser in state and local storage
 
             setModalOpen(false);
+            setusercreated(true);
             // setuserModalOpen((prev) => !prev);
           }
         } catch (error) {
@@ -565,7 +566,8 @@ const Navbar = ({ usermodalOpen, setuserModalOpen }) => {
                   <input
                     type="text"
                     name="mobilenumber"
-                    pattern="[0-9]*"
+                     pattern="\d{10}"
+  maxLength="10"
                     inputMode="numeric"
                     placeholder="Phone number"
                     onChange={handleChange}

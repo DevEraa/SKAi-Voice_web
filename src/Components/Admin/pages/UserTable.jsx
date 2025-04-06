@@ -25,7 +25,7 @@ export default function UserTable() {
     deleteuser,
     updateTeamUser,
   } = adminHooks();
-
+  const [usercreated, setusercreated] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -145,7 +145,7 @@ export default function UserTable() {
   useEffect(() => {
     console.log("userModalOpen changed:", usermodalOpen);
     fetchlist();
-  }, [usermodalOpen]);
+  }, [usercreated]);
 
   const toggleLockStatus = async (adminId, isLocked) => {
     console.log("userToToggle", userToToggle);
@@ -162,11 +162,11 @@ export default function UserTable() {
       console.error("Error updating lock status:", error);
     }
   };
+  console.log("usercreated",usercreated)
   return (
     <>
       <Navbar
-        usermodalOpen={usermodalOpen}
-        setuserModalOpen={setuserModalOpen}
+       setusercreated={setusercreated}
       />
       <div className="container mx-auto p-3 md:w-4/5 w-full">
         <div className="flex items-center justify-between mb-4">
