@@ -10,7 +10,7 @@ export default function Calllog() {
     const [searchTerm, setSearchTerm] = useState("");
     const [teams, setTeams] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 8;
+    const itemsPerPage = 7;
     const [deletePopup, setDeletePopup] = useState(false);
     const [selectedFileToDelete, setSelectedFileToDelete] = useState(null);
     const [multiDeleteMode, setMultiDeleteMode] = useState(false);
@@ -203,7 +203,7 @@ export default function Calllog() {
                                     </th>
                                 )}
                                 <th className="px-6 py-3 text-start text-sm font-semibold">
-                                    {selectedTeam ? "Name" : "Team Name"}
+                                    {selectedTeam ? " File Name" : "Team Name"}
                                 </th>
                                 <th className="px-6 py-3 text-center text-sm font-semibold">
                                     {selectedTeam ? "Recording" : "Actions"}
@@ -242,7 +242,7 @@ export default function Calllog() {
                                             />
                                         </td>
                                         <td className="px-6 py-4 text-sm font-medium text-gray-800">
-                                            {recording.teamName || "Not Available"}
+                                            {recording.filename || "Not Available"}
                                         </td>
                                         <td className="px-6 py-4 text-center flex items-center justify-center gap-4">
                                             <button
