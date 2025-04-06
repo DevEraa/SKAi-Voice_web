@@ -11,13 +11,14 @@ export default function Calllog() {
     const [teams, setTeams] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
-
     const [deletePopup, setDeletePopup] = useState(false);
     const [selectedFileToDelete, setSelectedFileToDelete] = useState(null);
     const [multiDeleteMode, setMultiDeleteMode] = useState(false);
 
     useEffect(() => {
-        fetch('https://demoapi.deveraa.com/v1/add/recordings/recordings/admin/84')
+        const id = localStorage.getItem("admin_id");
+        console.log("id",id)
+        fetch(`https://demoapi.deveraa.com/v1/add/recordings/recordings/admin/${id}`)
             .then(res => res.json())
             .then(data => {
                 const uniqueTeams = [];
@@ -35,7 +36,9 @@ export default function Calllog() {
 
     useEffect(() => {
         if (selectedTeam) {
-            fetch(`https://demoapi.deveraa.com/v1/add/recordings/recordings/admin/84`)
+            const id = localStorage.getItem("admin_id");
+            console.log("id",id)
+            fetch(`https://demoapi.deveraa.com/v1/add/recordings/recordings/admin/${id}`)
                 .then(response => response.json())
                 .then(data => {
                     const filtered = data.recordings?.filter(
