@@ -144,12 +144,24 @@ const superadminApp = () => {
         }
     }
 
+    const adminDropdown = async () => {
+        try {
+            const response = await adminAppService.get(`/admin/dropdown`);
+            return response;
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to fetch admin dropdown");
+            throw new Error(error);
+        }
+    }
+
     return {
         superadminlogin,
         createNewAdmin,
         deleteAllRecordings,
         listAdmin,
         getAdminById,
+        adminDropdown,
         updateAdmin,
         deleteAdmin,
         adminhistory,

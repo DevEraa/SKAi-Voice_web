@@ -14,27 +14,29 @@ export default function Navbar({ setUserAdded }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [pricemodalOpen, setpriceModalOpen] = useState(false);
   const [Logoutpopup, setlogoutpopup] = useState(false);
-  const [price, setprice] = useState()
+  const [price, setprice] = useState();
   useEffect(() => {
     const getpricedata = async () => {
       try {
         const result = await getprice();
         console.log("Full Response:", result); // Log full response
 
-        if (result?.Price && Array.isArray(result.Price) && result.Price.length > 0) {
+        if (
+          result?.Price &&
+          Array.isArray(result.Price) &&
+          result.Price.length > 0
+        ) {
           console.log("Price:", result.Price[0].price);
-          setprice(result.Price[0].price)
+          setprice(result.Price[0].price);
         } else {
           console.log("No price data found");
         }
-
       } catch (error) {
         console.log("❌ Error fetching price:", error);
       }
     };
     getpricedata();
   }, [modalOpen, pricemodalOpen]);
-
 
   const [formData, setFormData] = useState({
     name: "",
@@ -46,6 +48,8 @@ export default function Navbar({ setUserAdded }) {
     channel_name: "",
     phoneNumber: "",
     username: "",
+    customerId: "",
+    customerSecret: "",
   });
 
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -76,7 +80,7 @@ export default function Navbar({ setUserAdded }) {
           icon: "success",
         });
         setModalOpen(false);
-        setUserAdded(true)
+        setUserAdded(true);
       } else {
         Swal.fire({
           icon: "error",
@@ -96,15 +100,15 @@ export default function Navbar({ setUserAdded }) {
   };
 
   const addprice = async () => {
-    const pricedata = { price: price }
+    const pricedata = { price: price };
     try {
       const result = await saveprice(pricedata);
       console.log(result);
-      setpriceModalOpen(false)
+      setpriceModalOpen(false);
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
-  }
+  };
 
   return (
     <>
@@ -503,6 +507,35 @@ export default function Navbar({ setUserAdded }) {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Customer Id
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    name="customerId"
+                    placeholder="Customer ID"
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Customer Secret
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    name="customerSecret"
+                    placeholder="Customer Secret"
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Username
@@ -578,7 +611,6 @@ export default function Navbar({ setUserAdded }) {
           </div>
         </div>
       )}
-
 
       {pricemodalOpen && (
         <div

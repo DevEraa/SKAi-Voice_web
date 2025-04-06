@@ -9,7 +9,6 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import superadminApp from "../store/hook";
 import Navbar from "./Navbar";
 
@@ -90,6 +89,8 @@ export default function Table() {
     token_id: "",
     channel_name: "",
     username: "",
+    customerId: "",
+    customerSecret: "",
   });
 
   const handleEditClick = async (user) => {
@@ -106,6 +107,8 @@ export default function Table() {
       token_id: fullUserDetails.token_id || "",
       channel_name: fullUserDetails.channel_name || "",
       username: fullUserDetails.username || "",
+      customerId: fullUserDetails.customerId || "",
+      customerSecret: fullUserDetails.customerSecret || "",
     });
     setModalOpen(true);
   };
@@ -434,6 +437,37 @@ export default function Table() {
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all pr-10"
                   />
                 </div>
+
+                {/* <div className="grid grid-cols-2 gap-4"> */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Customer Id
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    value={formData.customerId}
+                    name="customerId"
+                    placeholder="Custome ID"
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Customer Secret
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    value={formData.customerSecret}
+                    name="customerSecret"
+                    placeholder="Customer Secret"
+                    onChange={handleChange}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  />
+                </div>
+                {/* </div> */}
 
                 <div className="relative">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
