@@ -389,9 +389,9 @@ export default function Audiocallpre() {
       {!isSessionStarted && <Navbar />}
 
       {isSessionStarted && (
-        <div className="px-10 flex space-x-4 w-full justify-end mt-5">
+        <div className="px-10 flex space-x-4 w-full justify-end mt-5 absolute z-10 right-2">
           <button
-            className="bg-blue-100 hover:bg-blue-200 p-3 rounded-full transition-colors duration-200"
+            className="bg-blue-600 text-white hover:bg-blue-200 p-3 rounded-xl transition-colors duration-200"
             onClick={() => {
               console.log("Ending session...");
               cleanupSession();
@@ -402,7 +402,7 @@ export default function Audiocallpre() {
         </div>
       )}
 
-      <div className="w-full md:w-5/6 h-[70vh] mx-auto mt-15 mb-2 bg-white rounded-xl overflow-hidden transition-all duration-300 shadow-2xl flex flex-col">
+      <div className="relative w-full md:w-[95%] h-[90vh] mx-auto mt-2 mb-2  bg-white rounded-xl overflow-hidden transition-all duration-300 shadow-2xl flex flex-col">
         {!isSessionStarted ? (
           <>
             <div className="flex-1 flex items-center justify-center p-8">
@@ -417,7 +417,7 @@ export default function Audiocallpre() {
             <div className="p-6 text-center border-t border-blue-50">
               <button
                 onClick={startSession}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-medium transform transition-all duration-300 hover:scale-105 shadow-md"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-bold transform transition-all duration-300 hover:scale-105 shadow-md"
                 disabled={loading}
               >
                 {loading ? "Starting..." : "Start Session"}
@@ -429,11 +429,11 @@ export default function Audiocallpre() {
           <>
             <div className="flex-1 flex flex-col p-8 bg-blue-300">
               <div className="mb-4 text-center">
-                <h2 className="text-xl font-bold text-white">{meetingName}</h2>
+                {/*  <h2 className="text-xl font-bold text-white">{meetingName}</h2>
                 <p className="text-blue-100">Active Call</p>
                 <p className="text-blue-100">
                   Channel: {channelName || channelNameis}
-                </p>
+                </p> */}
               </div>
 
               <div className="flex flex-row overflow-x-auto gap-5 justify-center">
@@ -448,7 +448,7 @@ export default function Audiocallpre() {
                       <div className="flex flex-col items-center space-y-4">
                         <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
                           <span className="text-3xl font-bold text-blue-500">
-                            {participant?.name || "?"} 
+                            {participant?.name || "?"}
                           </span>
                         </div>
                         <div className="text-center">
