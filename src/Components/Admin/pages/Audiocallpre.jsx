@@ -389,9 +389,9 @@ export default function Audiocallpre() {
       {!isSessionStarted && <Navbar />}
 
       {isSessionStarted && (
-        <div className="px-10 flex space-x-4 w-full justify-end mt-5 absolute z-10 right-2">
+        <div className="px-10 flex space-x-4 w-full justify-end mt-5">
           <button
-            className="bg-blue-600 text-white hover:bg-blue-200 p-3 rounded-xl transition-colors duration-200"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-bold transform transition-all duration-300 hover:scale-105 shadow-md"
             onClick={() => {
               console.log("Ending session...");
               cleanupSession();
@@ -402,7 +402,7 @@ export default function Audiocallpre() {
         </div>
       )}
 
-      <div className="relative w-full md:w-[95%] h-[90vh] mx-auto mt-2 mb-2  bg-white rounded-xl overflow-hidden transition-all duration-300 shadow-2xl flex flex-col">
+      <div className="w-full md:w-[95%] h-[80vh] mx-auto mt-2 mb-2 bg-white rounded-xl overflow-hidden transition-all duration-300 shadow-2xl flex flex-col">
         {!isSessionStarted ? (
           <>
             <div className="flex-1 flex items-center justify-center p-8">

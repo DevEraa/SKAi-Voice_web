@@ -50,6 +50,7 @@ export default function Calllog() {
                 .catch(error => console.error('Error fetching recordings:', error));
         }
     }, [selectedTeam]);
+    
 
     const handlePlay = (index) => {
         setPlaying(playing === index ? null : index);
@@ -137,6 +138,8 @@ export default function Calllog() {
         setSelectedTeam(team);
         setCurrentPage(1);
     };
+
+    
 
     return (
         <>
