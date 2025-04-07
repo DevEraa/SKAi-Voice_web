@@ -1,15 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Logo from "../../../assets/logo.jpg";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Link } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import adminHooks from "../store/hook";
 import Swal from "sweetalert2/dist/sweetalert2.js";
 import "sweetalert2/src/sweetalert2.scss";
 import superadminApp from "../../SuperAdmin/store/hook";
-import axios from "axios";
+import { FaCloudDownloadAlt } from "react-icons/fa";
 
 const Navbar = ({ setusercreated }) => {
+  const linkRef = useRef(null);
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -213,6 +214,12 @@ const Navbar = ({ setusercreated }) => {
     });
   };
 
+  const handleDownload = () => {
+    if (linkRef.current) {
+      linkRef.current.click();
+    }
+  };
+
   return (
     <>
       <nav className="bg-white shadow-md">
@@ -235,7 +242,6 @@ const Navbar = ({ setusercreated }) => {
                 >
                   Home
                 </NavLink>
-
                 <NavLink
                   to="/user"
                   className={({ isActive }) =>
@@ -246,7 +252,6 @@ const Navbar = ({ setusercreated }) => {
                 >
                   User
                 </NavLink>
-
                 <NavLink
                   to="/calllog"
                   className={({ isActive }) =>
@@ -262,41 +267,18 @@ const Navbar = ({ setusercreated }) => {
 
             {/* Right section - Actions and Profile */}
             <div className="flex items-center space-x-4">
-              <button class="inline-block relative">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-6 w-6 text-gray-700"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                  />
-                </svg>
-                <span class="animate-ping absolute top-1 right-0.5 block h-1 w-1 rounded-full ring-2 ring-green-400 bg-green-600"></span>
+              <button
+                onClick={handleDownload}
+                className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+              >
+                <FaCloudDownloadAlt className="h-5 w-5" />
               </button>
-
-              <button className="inline-block relative">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-gray-700"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                  />
-                </svg>
-                <span className="animate-ping absolute top-1 right-0.5 block h-1 w-1 rounded-full ring-2 ring-green-400 bg-green-600" />
-              </button>
+              <a
+                ref={linkRef}
+                href={`${import.meta.env.VITE_APP_API_URL}/download/app`}
+                download={"app"}
+                style={{ display: "none" }}
+              />
 
               {/* New Job Button - Desktop */}
               <button
@@ -379,6 +361,7 @@ const Navbar = ({ setusercreated }) => {
               >
                 Call Log
               </NavLink>
+
               <button
                 onClick={() => {
                   setModalOpen(true);
@@ -566,8 +549,8 @@ const Navbar = ({ setusercreated }) => {
                   <input
                     type="text"
                     name="mobilenumber"
-                     pattern="\d{10}"
-  maxLength="10"
+                    pattern="\d{10}"
+                    maxLength="10"
                     inputMode="numeric"
                     placeholder="Phone number"
                     onChange={handleChange}
