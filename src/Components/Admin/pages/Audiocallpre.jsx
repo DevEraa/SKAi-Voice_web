@@ -436,13 +436,13 @@ export default function Audiocallpre() {
                 </p> */}
               </div>
 
-              <div className="flex flex-row overflow-x-auto gap-5 justify-center">
+              <div className="grid grid-cols-5  overflow-x-auto gap-5 justify-center">
                 {participants
                   .filter((p) => !p.isLocal)
                   .map((participant) => (
                     <div
                       key={participant.uid}
-                      className={`bg-white rounded-2xl shadow-lg p-6 w-80 transition-all duration-300 hover:shadow-xl border border-blue-100 ${participant.isSpeaking ? "blink" : ""
+                      className={`bg-white rounded-3xl shadow-lg p-6 w-50 transition-all duration-300 hover:shadow-xl border border-blue-100 ${participant.isSpeaking ? "blink" : ""
                         }`}
                     >
                       <div className="flex flex-col items-center space-y-4">
@@ -543,21 +543,30 @@ export default function Audiocallpre() {
           .animate-zoomInOut {
             animation: zoomInOut 8s ease-in-out infinite;
           }
-          .blink {
-            animation: blinkAnimation 1s infinite;
-            border: 2px solid red !important;
-          }
-          @keyframes blinkAnimation {
-            0% {
-              border-color: red;
-            }
-            50% {
-              border-color: yellow;
-            }
-            100% {
-              border-color: red;
-            }
-          }
+.blink {
+  position: relative;
+  border: 4px solid #006400; /* Dark green */
+  border-radius: 24px;
+  padding: 20px;
+  background: white;
+  animation: borderBlink 1.5s infinite ease-in-out;
+  transition: all 0.3s ease;
+}
+
+@keyframes borderBlink {
+  0% {
+    box-shadow: 0 0 0px #006400;
+  }
+  50% {
+    box-shadow: 0 0 10px 4px #228B22; /* subtle glow */
+  }
+  100% {
+    box-shadow: 0 0 0px #006400;
+  }
+}
+
+
+
         `}</style>
       </div>
 
