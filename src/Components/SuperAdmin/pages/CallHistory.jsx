@@ -498,7 +498,7 @@ export default function CallHistory() {
               <button
                 type="button"
                 className=" cursor-pointer absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
-                onClick={() => setDeletepopup(false)}
+                onClick={() => setdeletebydatepopup(false)}
               >
                 <svg
                   className="w-5 h-5"
@@ -548,7 +548,7 @@ export default function CallHistory() {
                     Delete Permanently
                   </button>
                   <button
-                    onClick={() => setDeletepopup(false)}
+                    onClick={() => setdeletebydatepopup(false)}
                     className="cursor-pointer px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
                   >
                     Cancel
