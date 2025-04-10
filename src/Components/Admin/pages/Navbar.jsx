@@ -271,7 +271,10 @@ const Navbar = ({ setusercreated }) => {
                 onClick={handleDownload}
                 className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium"
               >
-                <FaCloudDownloadAlt className="h-5 w-5" />
+                <span className="flex flex-col items-center space-x-1">
+                  <FaCloudDownloadAlt className="h-5 w-5" />
+                  <span className="hidden md:inline">Download App</span>
+                </span>
               </button>
               <a
                 ref={linkRef}

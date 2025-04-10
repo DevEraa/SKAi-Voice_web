@@ -60,7 +60,7 @@ export default function Table() {
     );
   };
 
-  const filteredUsers = users.filter(
+  const filteredUsers = users?.filter(
     (user) =>
       user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||

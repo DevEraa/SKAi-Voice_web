@@ -24,7 +24,7 @@ export default function CallHistory() {
   const [currentPage, setCurrentPage] = useState(1);
   const [deletepopup, setDeletepopup] = useState(false);
   const [userToDelete, setuserToDelete] = useState();
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState();
   const recordsPerPage = 8;
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -41,7 +41,7 @@ export default function CallHistory() {
     });
   }, []);
 
-  console.log("adminValues", adminValues);
+  console.log("adminValues", selectedUser);
 
   const aggregateUsers = (history) => {
     const userMap = new Map();
@@ -58,24 +58,6 @@ export default function CallHistory() {
       user.totalCost += Number(record.cost);
     });
     return Array.from(userMap.values());
-  };
-
-  // Get unique users for the initial list
-  const getUniqueUsers = (history) => {
-    const unique = Array.from(new Set(history.map((item) => item.name))).map(
-      (name) => {
-        return history.find((item) => item.name === name);
-      }
-    );
-    return unique;
-  };
-
-  const toggleLock = (index) => {
-    setUsers(
-      users.map((user, i) =>
-        i === index ? { ...user, locked: !user.locked } : user
-      )
-    );
   };
 
   // Filter users based on view mode
@@ -111,7 +93,7 @@ export default function CallHistory() {
   };
 
   const Deleteadminbyid = async () => {
-    console.log(typeof userToDelete);
+    console.log(userToDelete, "usertodelete");
     const id = userToDelete;
     const deletehistory = await deleteadminhistory(id);
     console.log(deletehistory);
@@ -132,7 +114,7 @@ export default function CallHistory() {
       superadminname: "admin@123",
       fromDate: new Date(startDate).toISOString(),
       toDate: new Date(endDate + "T23:59:59").toISOString(),
-      selectedUser: selectedUser,
+      selectedUser: selectedUser || "all",
     });
 
     try {
@@ -140,7 +122,7 @@ export default function CallHistory() {
         superadminname: "admin@123",
         fromDate: new Date(startDate).toISOString(),
         toDate: new Date(endDate + "T23:59:59").toISOString(),
-        selectedUser: selectedUser,
+        selectedUser: selectedUser || "all",
       });
       fetchlist();
       Swal.fire({
@@ -211,7 +193,6 @@ export default function CallHistory() {
                 className="p-2 border rounded-md text-sm"
                 onChange={(e) => {
                   setSelectedUser(e.target.value);
-                  console.log("selected user", e.target.value);
                 }}
                 value={selectedUser}
               >
