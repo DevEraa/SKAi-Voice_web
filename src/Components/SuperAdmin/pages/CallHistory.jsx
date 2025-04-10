@@ -326,7 +326,7 @@ export default function CallHistory() {
                             {user.date}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-800 text-nowrap">
-                            {`${parseFloat(user.calltime).toFixed(2)} Min`}
+                            {`${parseFloat(user.calltime).toFixed(2)} Sec`}
                           </td>
                           <td className="px-6 py-4 text-sm font-medium text-gray-800 text-center text-nowrap">
                             {/* {user.cost} */}
@@ -365,7 +365,7 @@ export default function CallHistory() {
                         <>
                           <td className="px-6 py-4 text-sm text-gray-800 text-nowrap">
                             {/* {user.totalTime} */}
-                            {`${parseFloat(user.totalTime).toFixed(2)} Min`}
+                            {`${parseFloat(user.totalTime).toFixed(2)} Sec`}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-800 text-nowrap">
                             {`$ ${parseFloat(user.totalCost).toFixed(2)}`}

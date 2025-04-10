@@ -18,7 +18,7 @@ export default function Calllog() {
     useEffect(() => {
         const id = localStorage.getItem("admin_id");
         console.log("id",id)
-        fetch(`https://demoapi.deveraa.com/v1/add/recordings/recordings/admin/${id}`)
+        fetch(`https://api.skaivoice.live/v1/add/recordings/recordings/admin/${id}`)
             .then(res => res.json())
             .then(data => {
                 const uniqueTeams = [];
@@ -38,7 +38,7 @@ export default function Calllog() {
         if (selectedTeam) {
             const id = localStorage.getItem("admin_id");
             console.log("id",id)
-            fetch(`https://demoapi.deveraa.com/v1/add/recordings/recordings/admin/${id}`)
+            fetch(`https://api.skaivoice.live/v1/add/recordings/recordings/admin/${id}`)
                 .then(response => response.json())
                 .then(data => {
                     const filtered = data.recordings?.filter(
@@ -50,6 +50,7 @@ export default function Calllog() {
                 .catch(error => console.error('Error fetching recordings:', error));
         }
     }, [selectedTeam]);
+    
 
     const handlePlay = (index) => {
         setPlaying(playing === index ? null : index);
@@ -64,7 +65,7 @@ export default function Calllog() {
         }
 
         try {
-            const response = await fetch("https://demoapi.deveraa.com/v1/add/recordings/recordings/delete-from-url", {
+            const response = await fetch("https://api.skaivoice.live/v1/add/recordings/recordings/delete-from-url", {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json"
@@ -137,6 +138,8 @@ export default function Calllog() {
         setSelectedTeam(team);
         setCurrentPage(1);
     };
+
+    
 
     return (
         <>
