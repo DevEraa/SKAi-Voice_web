@@ -27,6 +27,27 @@ export default function Audiocallpre() {
 
   const [channelNameis, setChannelNameis] = useState("");
   const [app_certificateis, setAppCertificateis] = useState("");
+  const [audioDevices, setAudioDevices] = useState([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState("");
+
+  useEffect(() => {
+    const initializeDevices = async () => {
+      try {
+        const devices = await AgoraRTC.getMicrophones();
+        setAudioDevices(devices);
+        if (devices.length > 0) {
+          setSelectedDeviceId(devices[0].deviceId);
+        }
+      } catch (error) {
+        console.error("Error getting audio devices:", error);
+        setError("Error accessing microphone devices");
+      }
+    };
+
+    if (!isSessionStarted) {
+      initializeDevices();
+    }
+  }, [isSessionStarted]);
 
   useEffect(() => {
     const channelNameValue = sessionStorage.getItem("channel_name") || "";
@@ -85,7 +106,8 @@ export default function Audiocallpre() {
       const SPEAKING_THRESHOLD = 50; // Adjust threshold as needed
       volumes.forEach(({ uid, level }) => {
         console.log(
-          `User ${uid} level: ${level} - speaking: ${level > SPEAKING_THRESHOLD
+          `User ${uid} level: ${level} - speaking: ${
+            level > SPEAKING_THRESHOLD
           }`
         );
         setParticipants((prev) =>
@@ -208,6 +230,11 @@ export default function Audiocallpre() {
     }
 
     try {
+      // Get selected device
+      const selectedDevice = audioDevices.find(
+        (device) => device.deviceId === selectedDeviceId
+      );
+
       // Create meeting on backend (if needed)
       const response = await axios.post(`${API_URL}/meetings/create`, {
         meetingName: meetingName,
@@ -231,7 +258,9 @@ export default function Audiocallpre() {
 
       userNamesRef.current[adminUid] = adminName;
 
-      localAudioTrack.current = await AgoraRTC.createMicrophoneAudioTrack();
+      localAudioTrack.current = await AgoraRTC.createMicrophoneAudioTrack({
+        microphoneId: selectedDeviceId,
+      });
       await client.current.publish([localAudioTrack.current]);
 
       setParticipants([
@@ -253,8 +282,8 @@ export default function Audiocallpre() {
       console.error("Error starting session:", error);
       setError(
         error.response?.data?.error ||
-        error.message ||
-        "Failed to start session"
+          error.message ||
+          "Failed to start session"
       );
     } finally {
       setLoading(false);
@@ -384,6 +413,8 @@ export default function Audiocallpre() {
     }
   };
 
+  console.log("device?.label:", audioDevices);
+
   return (
     <>
       {!isSessionStarted && <Navbar />}
@@ -442,8 +473,9 @@ export default function Audiocallpre() {
                   .map((participant) => (
                     <div
                       key={participant.uid}
-                      className={`bg-white rounded-3xl shadow-lg p-6 w-50 transition-all duration-300 hover:shadow-xl border border-blue-100 ${participant.isSpeaking ? "blink" : ""
-                        }`}
+                      className={`bg-white rounded-3xl shadow-lg p-6 w-50 transition-all duration-300 hover:shadow-xl border border-blue-100 ${
+                        participant.isSpeaking ? "blink" : ""
+                      }`}
                     >
                       <div className="flex flex-col items-center space-y-4">
                         <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
@@ -460,45 +492,50 @@ export default function Audiocallpre() {
                               onClick={() =>
                                 toggleParticipantMute(participant.uid)
                               }
-                              className={`text-white py-2 px-4 rounded ${participant.isMuted
-                                ? "bg-green-600 hover:bg-green-700"
-                                : "bg-blue-600 hover:bg-blue-700"
-                                }`}
+                              className={`text-white py-2 px-4 rounded ${
+                                participant.isMuted
+                                  ? "bg-green-600 hover:bg-green-700"
+                                  : "bg-blue-600 hover:bg-blue-700"
+                              }`}
                             >
-                              {participant.isMuted ? (<svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="lucide lucide-mic-off"
-                              >
-                                <line x1="2" x2="22" y1="2" y2="22" />
-                                <path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2" />
-                                <path d="M5 10v2a7 7 0 0 0 12 5" />
-                                <path d="M15 9.34V5a3 3 0 0 0-5.68-1.33" />
-                                <path d="M9 9v3a3 3 0 0 0 5.12 2.12" />
-                                <line x1="12" x2="12" y1="19" y2="22" />
-                              </svg>) : (<svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="lucide lucide-mic"
-                              >
-                                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                                <line x1="12" x2="12" y1="19" y2="22" />
-                              </svg>)}
+                              {participant.isMuted ? (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="lucide lucide-mic-off"
+                                >
+                                  <line x1="2" x2="22" y1="2" y2="22" />
+                                  <path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2" />
+                                  <path d="M5 10v2a7 7 0 0 0 12 5" />
+                                  <path d="M15 9.34V5a3 3 0 0 0-5.68-1.33" />
+                                  <path d="M9 9v3a3 3 0 0 0 5.12 2.12" />
+                                  <line x1="12" x2="12" y1="19" y2="22" />
+                                </svg>
+                              ) : (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="lucide lucide-mic"
+                                >
+                                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                                  <line x1="12" x2="12" y1="19" y2="22" />
+                                </svg>
+                              )}
                             </button>
                             {participants.find((p) => p.isLocal)?.isAdmin && (
                               <button
@@ -506,17 +543,32 @@ export default function Audiocallpre() {
                                 className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded"
                                 title="Kick participant from the session"
                               >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  stroke-width="2"
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  class="lucide lucide-x-icon lucide-x"
+                                >
+                                  <path d="M18 6 6 18" />
+                                  <path d="m6 6 12 12" />
+                                </svg>
                               </button>
                             )}
                           </div>
                         </div>
                         <div className="flex items-center space-x-2 w-full justify-center">
                           <div
-                            className={`w-4 h-4 rounded-full ${participant.isMuted
-                              ? "bg-red-500"
-                              : "bg-green-500"
-                              }`}
+                            className={`w-4 h-4 rounded-full ${
+                              participant.isMuted
+                                ? "bg-red-500"
+                                : "bg-green-500"
+                            }`}
                           />
                           <span className="text-sm text-gray-500">
                             {participant.isMuted ? "Muted" : "Active"}
@@ -543,30 +595,27 @@ export default function Audiocallpre() {
           .animate-zoomInOut {
             animation: zoomInOut 8s ease-in-out infinite;
           }
-.blink {
-  position: relative;
-  border: 4px solid #006400; /* Dark green */
-  border-radius: 24px;
-  padding: 20px;
-  background: white;
-  animation: borderBlink 1.5s infinite ease-in-out;
-  transition: all 0.3s ease;
-}
+          .blink {
+            position: relative;
+            border: 4px solid #006400; /* Dark green */
+            border-radius: 24px;
+            padding: 20px;
+            background: white;
+            animation: borderBlink 1.5s infinite ease-in-out;
+            transition: all 0.3s ease;
+          }
 
-@keyframes borderBlink {
-  0% {
-    box-shadow: 0 0 0px #006400;
-  }
-  50% {
-    box-shadow: 0 0 10px 4px #228B22; /* subtle glow */
-  }
-  100% {
-    box-shadow: 0 0 0px #006400;
-  }
-}
-
-
-
+          @keyframes borderBlink {
+            0% {
+              box-shadow: 0 0 0px #006400;
+            }
+            50% {
+              box-shadow: 0 0 10px 4px #228b22; /* subtle glow */
+            }
+            100% {
+              box-shadow: 0 0 0px #006400;
+            }
+          }
         `}</style>
       </div>
 
@@ -574,10 +623,11 @@ export default function Audiocallpre() {
         <div className="flex space-x-4 w-full justify-center">
           <button
             onClick={toggleMute}
-            className={`p-3 rounded-full ${isMuted
-              ? "bg-red-500 hover:bg-red-600"
-              : "bg-blue-500 hover:bg-blue-600"
-              } transition-colors duration-200`}
+            className={`p-3 rounded-full ${
+              isMuted
+                ? "bg-red-500 hover:bg-red-600"
+                : "bg-blue-500 hover:bg-blue-600"
+            } transition-colors duration-200`}
           >
             {isMuted ? (
               <svg
