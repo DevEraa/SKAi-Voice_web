@@ -14,7 +14,6 @@ import {
   SuperAdminProtectedRoute,
   AdminProtectedRoute,
 } from "../ProtectedRoutes/Protected";
-import AudioPlayer from "../Admin/pages/AudioPlayer";
 
 export default function Index() {
   return (
