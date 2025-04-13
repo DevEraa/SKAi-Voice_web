@@ -55,27 +55,166 @@ export default function Audiocallpre() {
 
   const [channelNameis, setChannelNameis] = useState("");
   const [app_certificateis, setAppCertificateis] = useState("");
-  const [audioDevices, setAudioDevices] = useState([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
 
-  useEffect(() => {
-    const initializeDevices = async () => {
+  const deviceMonitorTimerRef = useRef(null);
+  const availableDevicesRef = useRef([]);
+  const isBluetoothConnectedRef = useRef(false);
+
+  // Function to update available audio devices and auto-select Bluetooth when available
+  const updateAudioDevices = async () => {
+    try {
+      console.log("Checking for audio devices...");
+
+      // Get updated list of microphones
+      const devices = await AgoraRTC.getMicrophones();
+      availableDevicesRef.current = devices;
+
+      // Check if we have any bluetooth device
+      const bluetoothDevice = devices.find(
+        (device) =>
+          device.label.toLowerCase().includes("bluetooth") ||
+          device.label.toLowerCase().includes("airpods") ||
+          device.label.toLowerCase().includes("headset")
+      );
+
+      const wasBluetoothConnected = isBluetoothConnectedRef.current;
+      isBluetoothConnectedRef.current = !!bluetoothDevice;
+
+      // If a bluetooth device is found and it's different from the current selection
+      if (bluetoothDevice && bluetoothDevice.deviceId !== selectedDeviceId) {
+        console.log(`Bluetooth device found: ${bluetoothDevice.label}`);
+        setSelectedDeviceId(bluetoothDevice.deviceId);
+
+        // If session is active, switch to bluetooth device
+        if (isSessionStarted && localAudioTrack.current) {
+          console.log("Switching to bluetooth device during active session");
+          await switchMicrophone(bluetoothDevice.deviceId);
+        }
+      }
+      // Handle bluetooth disconnection - fallback to default device
+      else if (
+        wasBluetoothConnected &&
+        !bluetoothDevice &&
+        devices.length > 0
+      ) {
+        console.log(
+          "Bluetooth disconnected, falling back to default microphone"
+        );
+        const defaultDevice = devices[0];
+        setSelectedDeviceId(defaultDevice.deviceId);
+
+        if (isSessionStarted && localAudioTrack.current) {
+          console.log(`Switching to default device: ${defaultDevice.label}`);
+          await switchMicrophone(defaultDevice.deviceId);
+        }
+      }
+      // Initial setup with no bluetooth - use default device
+      else if (!bluetoothDevice && devices.length > 0 && !selectedDeviceId) {
+        console.log(`Setting default device: ${devices[0].label}`);
+        setSelectedDeviceId(devices[0].deviceId);
+      }
+    } catch (error) {
+      console.error("Error getting audio devices:", error);
+    }
+  };
+
+  // Function to switch microphone during active session
+  const switchMicrophone = async (deviceId) => {
+    if (!isSessionStarted || !localAudioTrack.current) return;
+
+    try {
+      // Verify that the device actually exists before switching
+      const devices = availableDevicesRef.current;
+      const deviceExists = devices.some(
+        (device) => device.deviceId === deviceId
+      );
+
+      if (!deviceExists) {
+        console.warn(
+          `Device ${deviceId} no longer exists, using default device`
+        );
+        // Use the first available device instead
+        if (devices.length > 0) {
+          deviceId = devices[0].deviceId;
+        } else {
+          console.error("No audio devices available");
+          return;
+        }
+      }
+
+      // Close the existing track
+      localAudioTrack.current.stop();
+      localAudioTrack.current.close();
+
+      // Create a new track with the selected device
+      localAudioTrack.current = await AgoraRTC.createMicrophoneAudioTrack({
+        microphoneId: deviceId,
+      });
+
+      // Maintain the mute state
+      if (isMuted) {
+        await localAudioTrack.current.setMuted(true);
+      }
+
+      // Publish the new track
+      await client.current.publish([localAudioTrack.current]);
+
+      console.log(`Successfully switched to microphone: ${deviceId}`);
+    } catch (error) {
+      console.error("Error switching microphone:", error);
+      // Try to recover by using any available device
       try {
         const devices = await AgoraRTC.getMicrophones();
-        setAudioDevices(devices);
         if (devices.length > 0) {
+          console.log("Attempting recovery with first available device");
+          localAudioTrack.current = await AgoraRTC.createMicrophoneAudioTrack({
+            microphoneId: devices[0].deviceId,
+          });
+
+          if (isMuted) {
+            await localAudioTrack.current.setMuted(true);
+          }
+
+          await client.current.publish([localAudioTrack.current]);
           setSelectedDeviceId(devices[0].deviceId);
         }
-      } catch (error) {
-        console.error("Error getting audio devices:", error);
-        setError("Error accessing microphone devices");
+      } catch (recoveryError) {
+        console.error("Failed to recover microphone:", recoveryError);
+        setError("Microphone error. Please rejoin the session.");
       }
-    };
-
-    if (!isSessionStarted) {
-      initializeDevices();
     }
-  }, [isSessionStarted]);
+  };
+
+  // Initialize audio devices and set up device monitoring
+  useEffect(() => {
+    updateAudioDevices();
+
+    // Set up periodic checking for device changes - more frequent checks during active session
+    const checkInterval = isSessionStarted ? 2000 : 5000;
+    deviceMonitorTimerRef.current = setInterval(
+      updateAudioDevices,
+      checkInterval
+    );
+
+    // Add event listener for device changes
+    navigator.mediaDevices.addEventListener("devicechange", handleDeviceChange);
+
+    return () => {
+      clearInterval(deviceMonitorTimerRef.current);
+      navigator.mediaDevices.removeEventListener(
+        "devicechange",
+        handleDeviceChange
+      );
+    };
+  }, [isSessionStarted, selectedDeviceId]);
+
+  // Handle device change events
+  const handleDeviceChange = async () => {
+    console.log("Device change event detected");
+    // Wait a moment for the system to recognize the new devices
+    setTimeout(updateAudioDevices, 500);
+  };
 
   useEffect(() => {
     const channelNameValue = sessionStorage.getItem("channel_name") || "";
@@ -257,10 +396,13 @@ export default function Audiocallpre() {
     }
 
     try {
-      // Get selected device
-      const selectedDevice = audioDevices.find(
-        (device) => device.deviceId === selectedDeviceId
-      );
+      // Get current audio devices to ensure we have the latest
+      await updateAudioDevices();
+
+      // Ensure we have a device selected
+      if (!selectedDeviceId && availableDevicesRef.current.length > 0) {
+        setSelectedDeviceId(availableDevicesRef.current[0].deviceId);
+      }
 
       // Create meeting on backend (if needed)
       const response = await axios.post(`${API_URL}/meetings/create`, {
@@ -272,9 +414,6 @@ export default function Audiocallpre() {
       const { channelName, token, adminUid } = response.data;
       setChannelName(channelNameis || channelName);
       localUidRef.current = adminUid;
-
-      // Remove the setClientRole call - not compatible with RTC mode
-      // client.current.setClientRole("host"); // REMOVED THIS LINE
 
       await client.current.join(
         appId,
@@ -304,8 +443,10 @@ export default function Audiocallpre() {
       // Record the session start time
       setSessionStartTime(new Date());
       setIsSessionStarted(true);
-      console.log("Session started successfully");
-      startCall();
+      console.log(
+        "Session started successfully with device:",
+        selectedDeviceId
+      );
     } catch (error) {
       console.error("Error starting session:", error);
       setError(
@@ -449,8 +590,6 @@ export default function Audiocallpre() {
     }
   };
 
-  console.log("device?.label:", audioDevices);
-  console.log("callTime outside", callTime)
   return (
     <>
       {!isSessionStarted && <Navbar />}
@@ -458,7 +597,7 @@ export default function Audiocallpre() {
       {isSessionStarted && (
         <div className="px-10 flex space-x-4 w-full justify-end mt-5">
           <button
-            className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-bold transform transition-all duration-300 hover:scale-105 shadow-md"
+            className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg font-bold transform transition-all duration-300 hover:scale-105 shadow-md"
             onClick={() => {
               console.log("Ending session...");
               cleanupSession();
@@ -495,14 +634,6 @@ export default function Audiocallpre() {
         ) : (
           <>
             <div className="flex-1 flex flex-col p-8 bg-blue-300">
-              <div className="mb-4 text-center">
-                {/*  <h2 className="text-xl font-bold text-white">{meetingName}</h2>
-                <p className="text-blue-100">Active Call</p>
-                <p className="text-blue-100">
-                  Channel: {channelName || channelNameis}
-                </p> */}
-              </div>
-
               <div className="grid grid-cols-5  overflow-x-auto gap-5 justify-center">
                 {participants
                   .filter((p) => !p.isLocal)
@@ -615,6 +746,58 @@ export default function Audiocallpre() {
           </>
         )}
 
+        {isSessionStarted && (
+          <div className="flex space-x-4 w-full justify-center">
+            <button
+              onClick={toggleMute}
+              className={`p-3 rounded-full ${
+                isMuted
+                  ? "bg-red-500 hover:bg-red-600"
+                  : "bg-blue-500 hover:bg-blue-600"
+              } transition-colors duration-200`}
+            >
+              {isMuted ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-mic-off"
+                >
+                  <line x1="2" x2="22" y1="2" y2="22" />
+                  <path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2" />
+                  <path d="M5 10v2a7 7 0 0 0 12 5" />
+                  <path d="M15 9.34V5a3 3 0 0 0-5.68-1.33" />
+                  <path d="M9 9v3a3 3 0 0 0 5.12 2.12" />
+                  <line x1="12" x2="12" y1="19" y2="22" />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-mic"
+                >
+                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  <line x1="12" x2="12" y1="19" y2="22" />
+                </svg>
+              )}
+            </button>
+          </div>
+        )}
+
         <style jsx>{`
           @keyframes zoomInOut {
             0%,
@@ -651,57 +834,6 @@ export default function Audiocallpre() {
           }
         `}</style>
       </div>
-
-      {isSessionStarted && (
-        <div className="flex space-x-4 w-full justify-center">
-          <button
-            onClick={toggleMute}
-            className={`p-3 rounded-full ${isMuted
-              ? "bg-red-500 hover:bg-red-600"
-              : "bg-blue-500 hover:bg-blue-600"
-              } transition-colors duration-200`}
-          >
-            {isMuted ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="lucide lucide-mic-off"
-              >
-                <line x1="2" x2="22" y1="2" y2="22" />
-                <path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2" />
-                <path d="M5 10v2a7 7 0 0 0 12 5" />
-                <path d="M15 9.34V5a3 3 0 0 0-5.68-1.33" />
-                <path d="M9 9v3a3 3 0 0 0 5.12 2.12" />
-                <line x1="12" x2="12" y1="19" y2="22" />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="lucide lucide-mic"
-              >
-                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                <line x1="12" x2="12" y1="19" y2="22" />
-              </svg>
-            )}
-          </button>
-        </div>
-      )}
     </>
   );
-}
+} // End of Audiocallpre component
