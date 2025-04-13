@@ -11,6 +11,9 @@ const API_URL = `${import.meta.env.VITE_APP_API_URL}/call`; // Your backend API 
 export default function Audiocallpre() {
   const [callTime, setCallTime] = useState("0 min 0 sec");
   const startTimeRef = useRef(null);
+  const [totalBillableMinutes, setTotalBillableMinutes] = useState(0);
+  const participantCountRef = useRef(1); // Start with 1 (admin)
+  const participantTimeTrackingRef = useRef({}); // Track join/leave times
 
   const startCall = () => {
     startTimeRef.current = Date.now();
@@ -339,6 +342,19 @@ export default function Audiocallpre() {
       };
 
       const userName = userNamesRef.current[user.uid] || `User ${user.uid}`;
+
+      participantTimeTrackingRef.current[user.uid] = {
+        joinTime: new Date(),
+        totalTime: 0,
+      };
+
+      participantCountRef.current = Object.keys(
+        participantTimeTrackingRef.current
+      ).length;
+      console.log(
+        `Participant count increased to: ${participantCountRef.current}`
+      );
+
       setParticipants((prev) => {
         if (!prev.some((p) => p.uid === user.uid)) {
           return [
@@ -379,10 +395,62 @@ export default function Audiocallpre() {
 
   const handleUserLeft = (user) => {
     console.log("User left:", user);
+
+    if (participantTimeTrackingRef.current[user.uid]) {
+      const userJoinTime =
+        participantTimeTrackingRef.current[user.uid].joinTime;
+      const leaveTime = new Date();
+      const sessionMinutes = (leaveTime - userJoinTime) / (1000 * 60);
+
+      // Add this user's time to total billable minutes
+      const userBillableTime = sessionMinutes;
+      console.log(
+        `User ${user.uid} participated for ${userBillableTime.toFixed(
+          2
+        )} minutes`
+      );
+
+      // Remove user from tracking
+      delete participantTimeTrackingRef.current[user.uid];
+
+      // Update participant count
+      participantCountRef.current = Object.keys(
+        participantTimeTrackingRef.current
+      ).length;
+      console.log(
+        `Participant count decreased to: ${participantCountRef.current}`
+      );
+    }
+
     if (remoteUserAudioStates.current[user.uid]) {
       delete remoteUserAudioStates.current[user.uid];
     }
     setParticipants((prev) => prev.filter((p) => p.uid !== user.uid));
+  };
+
+  const calculateBillableMinutes = () => {
+    if (!sessionStartTime) return 0;
+
+    const endTime = new Date();
+    const sessionDurationMinutes = (endTime - sessionStartTime) / (1000 * 60);
+
+    // For each participant still in the call, calculate their time
+    Object.keys(participantTimeTrackingRef.current).forEach((uid) => {
+      const joinTime = participantTimeTrackingRef.current[uid].joinTime;
+      const participantDurationMinutes = (endTime - joinTime) / (1000 * 60);
+      participantTimeTrackingRef.current[uid].totalTime =
+        participantDurationMinutes;
+    });
+
+    // Sum up the time for all participants (including those who left)
+    let totalTime = 0;
+    Object.values(participantTimeTrackingRef.current).forEach((data) => {
+      totalTime += data.totalTime;
+    });
+
+    // Total billable minutes is the sum of all participant times
+    console.log(`Total billable minutes: ${totalTime.toFixed(2)}`);
+    return totalTime;
   };
 
   const startSession = async () => {
@@ -425,6 +493,12 @@ export default function Audiocallpre() {
 
       userNamesRef.current[adminUid] = adminName;
 
+      participantTimeTrackingRef.current[adminUid] = {
+        joinTime: new Date(),
+        totalTime: 0,
+      };
+      participantCountRef.current = 1;
+
       localAudioTrack.current = await AgoraRTC.createMicrophoneAudioTrack({
         microphoneId: selectedDeviceId,
       });
@@ -462,17 +536,26 @@ export default function Audiocallpre() {
   };
 
   const saveCallHistory = async (min, sec) => {
-    console.log("Time call", min, "sec", sec); // This will be correct
+    console.log("Time call", min, "sec", sec);
 
     try {
       const today = new Date();
       const formattedDate = today.toISOString().split("T")[0];
 
+      // Calculate total billable minutes
+      const billableMinutes = calculateBillableMinutes();
+      setTotalBillableMinutes(billableMinutes);
+
       const historyData = {
         name: adminName || "Unknown User",
         date: formattedDate,
-        calltime: `min=${min}, sec=${sec}`, // ✅ Fresh, correct value
+        calltime: `min=${min}, sec=${sec}`,
         userid: adminId,
+        billableMinutes: billableMinutes.toFixed(2), // Add billable minutes to the payload
+        maxParticipants: Math.max(
+          participantCountRef.current,
+          Object.keys(participantTimeTrackingRef.current).length
+        ),
       };
 
       console.log("Saving call history:", historyData);
@@ -496,8 +579,13 @@ export default function Audiocallpre() {
       if (isSessionStarted && sessionStartTime) {
         const endTime = new Date();
         const durationMs = endTime - sessionStartTime;
-        const durationMinutes = durationMs / (1000 * 60); // Convert ms to minutes
+        const durationMinutes = durationMs / (1000 * 60);
         console.log("durationMinutes", durationMinutes);
+
+        // Calculate final billable minutes before stopping call
+        const billableMinutes = calculateBillableMinutes();
+        console.log(`Final billable minutes: ${billableMinutes.toFixed(2)}`);
+
         stopCall();
       }
 
@@ -521,6 +609,10 @@ export default function Audiocallpre() {
       setParticipants([]);
       remoteUserAudioStates.current = {};
       userNamesRef.current = {};
+
+      // Reset billing tracking
+      participantTimeTrackingRef.current = {};
+      participantCountRef.current = 0;
     } catch (error) {
       console.error("Error ending meeting:", error);
     }
