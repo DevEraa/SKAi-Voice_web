@@ -41,6 +41,8 @@ export default function CallHistory() {
     });
   }, []);
 
+
+
   console.log("adminValues", selectedUser);
 
   const aggregateUsers = (history) => {
@@ -124,23 +126,31 @@ export default function CallHistory() {
     fetchlist();
   };
 
+  const formatDate = (dateStr) => {
+    const d = new Date(dateStr);
+    return d.toISOString().split('T')[0]; // returns 'YYYY-MM-DD'
+  };
+
   const deletehstory = async () => {
     if (!startDate || !endDate) {
       alert("Please select both from and to dates.");
       return;
     }
+    const formattedStart = formatDate(startDate);
+    const formattedEnd = formatDate(endDate);
+
     console.log("first", {
       superadminname: "admin@123",
-      fromDate: new Date(startDate).toISOString(),
-      toDate: new Date(endDate + "T23:59:59").toISOString(),
+      fromDate: formattedStart,
+      toDate: formattedEnd,
       selectedUser: selectedUser || "all",
     });
 
     try {
       const response = deleteAllRecordings({
         superadminname: "admin@123",
-        fromDate: new Date(startDate).toISOString(),
-        toDate: new Date(endDate + "T23:59:59").toISOString(),
+        fromDate: formattedStart,
+        toDate: formattedEnd,
         selectedUser: selectedUser || "all",
       });
       fetchlist();
@@ -257,21 +267,22 @@ export default function CallHistory() {
           </button>
         </div>
         <div className="flex items-center justify-between mb-4">
-          {selectedUser === null && (
-            <div className="relative w-1/3">
-              <input
-                type="text"
-                placeholder="Search..."
-                className="w-full p-2 pl-10 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <Search
-                className="absolute left-3 top-2.5 text-gray-400"
-                size={20}
-              />
-            </div>
-          )}
+          {/* {selectedUser === null && (
+           
+          )} */}
+          <div className="relative w-1/3">
+            <input
+              type="text"
+              placeholder="Search..."
+              className="w-full p-2 pl-10 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <Search
+              className="absolute left-3 top-2.5 text-gray-400"
+              size={20}
+            />
+          </div>
 
           {selectedUser && (
             <button
@@ -434,6 +445,34 @@ export default function CallHistory() {
               </table>
             </div>
           </div>
+        </div>
+        <div className="flex justify-center items-center mt-4 space-x-2">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+          >
+            Prev
+          </button>
+
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentPage(i + 1)}
+              className={`px-3 py-1 rounded ${currentPage === i + 1 ? "bg-blue-600 text-white" : "bg-gray-200 hover:bg-gray-300"
+                }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+          >
+            Next
+          </button>
         </div>
       </div>
 
