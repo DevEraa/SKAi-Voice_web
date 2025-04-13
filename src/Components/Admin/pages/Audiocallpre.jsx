@@ -9,6 +9,34 @@ import image from "../../../assets/startsession.webp";
 const API_URL = `${import.meta.env.VITE_APP_API_URL}/call`; // Your backend API URL
 
 export default function Audiocallpre() {
+
+  const [callTime, setCallTime] = useState('0 min 0 sec');
+  const startTimeRef = useRef(null);
+
+  const startCall = () => {
+    startTimeRef.current = Date.now(); // Save the start time
+    console.log('Call started');
+  };
+  const stopCall = async () => {
+    if (startTimeRef.current) {
+      const endTime = Date.now();
+      const elapsedMs = endTime - startTimeRef.current;
+
+      const totalSeconds = Math.floor(elapsedMs / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+
+      await saveCallHistory(minutes, seconds);
+
+      const formattedTime = `${minutes} min ${seconds} sec`;
+      setCallTime(formattedTime); // (optional, only for display)
+      startTimeRef.current = null;
+
+      return formattedTime; // ✅ Return the actual time
+    }
+    return '0 min 0 sec';
+  };
+
   const [isSessionStarted, setIsSessionStarted] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [participants, setParticipants] = useState([]);
@@ -106,8 +134,7 @@ export default function Audiocallpre() {
       const SPEAKING_THRESHOLD = 50; // Adjust threshold as needed
       volumes.forEach(({ uid, level }) => {
         console.log(
-          `User ${uid} level: ${level} - speaking: ${
-            level > SPEAKING_THRESHOLD
+          `User ${uid} level: ${level} - speaking: ${level > SPEAKING_THRESHOLD
           }`
         );
         setParticipants((prev) =>
@@ -278,28 +305,32 @@ export default function Audiocallpre() {
       setSessionStartTime(new Date());
       setIsSessionStarted(true);
       console.log("Session started successfully");
+      startCall();
     } catch (error) {
       console.error("Error starting session:", error);
       setError(
         error.response?.data?.error ||
-          error.message ||
-          "Failed to start session"
+        error.message ||
+        "Failed to start session"
       );
     } finally {
       setLoading(false);
     }
   };
 
-  const saveCallHistory = async (callDurationMinutes) => {
+
+  const saveCallHistory = async (min, sec) => {
+   
+    console.log("Time call", min,"sec", sec); // This will be correct
+  
     try {
-      // Format current date as YYYY-MM-DD
       const today = new Date();
       const formattedDate = today.toISOString().split("T")[0];
 
       const historyData = {
         name: adminName || "Unknown User",
         date: formattedDate,
-        calltime: callDurationMinutes,
+        calltime: `min=${min}, sec=${sec}`, // ✅ Fresh, correct value
         userid: adminId,
       };
 
@@ -309,25 +340,30 @@ export default function Audiocallpre() {
         `${import.meta.env.VITE_APP_API_URL}/superadmin/savehistory`,
         historyData
       );
+
       console.log("Call history saved successfully");
     } catch (error) {
       console.error("Error saving call history:", error);
     }
   };
 
+
+
+
   const cleanupSession = async () => {
     console.log("Cleaning up session...");
     // setLeft(true);
-
+   
     try {
       // Calculate call duration if session was started
       if (isSessionStarted && sessionStartTime) {
         const endTime = new Date();
         const durationMs = endTime - sessionStartTime;
         const durationMinutes = durationMs / (1000 * 60); // Convert ms to minutes
-
+        console.log("durationMinutes", durationMinutes)
         // Save call history to the API
-        await saveCallHistory(durationMinutes);
+        stopCall();
+       
       }
 
       await axios.post(`${API_URL}/meetings/update`, {
@@ -414,7 +450,7 @@ export default function Audiocallpre() {
   };
 
   console.log("device?.label:", audioDevices);
-
+  console.log("callTime outside", callTime)
   return (
     <>
       {!isSessionStarted && <Navbar />}
@@ -473,9 +509,8 @@ export default function Audiocallpre() {
                   .map((participant) => (
                     <div
                       key={participant.uid}
-                      className={`bg-white rounded-3xl shadow-lg p-6 w-50 transition-all duration-300 hover:shadow-xl border border-blue-100 ${
-                        participant.isSpeaking ? "blink" : ""
-                      }`}
+                      className={`bg-white rounded-3xl shadow-lg p-6 w-50 transition-all duration-300 hover:shadow-xl border border-blue-100 ${participant.isSpeaking ? "blink" : ""
+                        }`}
                     >
                       <div className="flex flex-col items-center space-y-4">
                         <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
@@ -492,11 +527,10 @@ export default function Audiocallpre() {
                               onClick={() =>
                                 toggleParticipantMute(participant.uid)
                               }
-                              className={`text-white py-2 px-4 rounded ${
-                                participant.isMuted
-                                  ? "bg-green-600 hover:bg-green-700"
-                                  : "bg-blue-600 hover:bg-blue-700"
-                              }`}
+                              className={`text-white py-2 px-4 rounded ${participant.isMuted
+                                ? "bg-green-600 hover:bg-green-700"
+                                : "bg-blue-600 hover:bg-blue-700"
+                                }`}
                             >
                               {participant.isMuted ? (
                                 <svg
@@ -564,11 +598,10 @@ export default function Audiocallpre() {
                         </div>
                         <div className="flex items-center space-x-2 w-full justify-center">
                           <div
-                            className={`w-4 h-4 rounded-full ${
-                              participant.isMuted
-                                ? "bg-red-500"
-                                : "bg-green-500"
-                            }`}
+                            className={`w-4 h-4 rounded-full ${participant.isMuted
+                              ? "bg-red-500"
+                              : "bg-green-500"
+                              }`}
                           />
                           <span className="text-sm text-gray-500">
                             {participant.isMuted ? "Muted" : "Active"}
@@ -623,11 +656,10 @@ export default function Audiocallpre() {
         <div className="flex space-x-4 w-full justify-center">
           <button
             onClick={toggleMute}
-            className={`p-3 rounded-full ${
-              isMuted
-                ? "bg-red-500 hover:bg-red-600"
-                : "bg-blue-500 hover:bg-blue-600"
-            } transition-colors duration-200`}
+            className={`p-3 rounded-full ${isMuted
+              ? "bg-red-500 hover:bg-red-600"
+              : "bg-blue-500 hover:bg-blue-600"
+              } transition-colors duration-200`}
           >
             {isMuted ? (
               <svg

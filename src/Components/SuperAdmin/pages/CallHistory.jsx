@@ -45,6 +45,7 @@ export default function CallHistory() {
 
   const aggregateUsers = (history) => {
     const userMap = new Map();
+
     history.forEach((record) => {
       if (!userMap.has(record.name)) {
         userMap.set(record.name, {
@@ -53,19 +54,37 @@ export default function CallHistory() {
           totalCost: 0,
         });
       }
+
       const user = userMap.get(record.name);
-      user.totalTime += Number(record.calltime);
-      user.totalCost += Number(record.cost);
+
+      let seconds = 0;
+
+      // Match and convert "min=1, sec=54" format
+      const match = record.calltime.match(/min=(\d+),\s*sec=(\d+)/);
+      if (match) {
+        const min = parseInt(match[1], 10);
+        const sec = parseInt(match[2], 10);
+        seconds = min * 60 + sec;
+      } else {
+        // Try parsing if calltime is just seconds
+        const raw = parseInt(record.calltime.replace(/\D/g, ''), 10);
+        seconds = isNaN(raw) ? 0 : raw;
+      }
+
+      user.totalTime += seconds;
+      user.totalCost += parseFloat(record.cost) || 0;
     });
+
     return Array.from(userMap.values());
   };
+
 
   // Filter users based on view mode
   const filteredUsers = selectedUser
     ? users.filter((user) => user.name === selectedUser)
     : aggregatedUsers.filter((user) =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      user.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   const totalPages = Math.ceil(filteredUsers.length / recordsPerPage);
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
@@ -154,6 +173,31 @@ export default function CallHistory() {
       console.error(err);
       alert("Error deleting selected records.");
     }
+  };
+
+  const formatCallTime = (calltime) => {
+    if (!calltime) return '0 sec';
+
+    // If it's already in "min=X, sec=Y" format
+    const match = calltime.match(/min=(\d+),\s*sec=(\d+)/);
+    if (match) {
+      const minutes = parseInt(match[1], 10);
+      const seconds = parseInt(match[2], 10);
+      return `${minutes > 0 ? `${minutes} min ` : ''}${seconds} sec`;
+    }
+
+    // If it's a raw second value (e.g., "114 Sec" or just "114")
+    const rawSeconds = parseInt(calltime.replace(/\D/g, ''), 10);
+    const minutes = Math.floor(rawSeconds / 60);
+    const seconds = rawSeconds % 60;
+
+    return `${minutes > 0 ? `${minutes} min ` : ''}${seconds} sec`;
+  };
+
+  const formatSecondsToMinSec = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins > 0 ? `${mins} min ` : ''}${secs} sec`;
   };
 
   return (
@@ -325,12 +369,13 @@ export default function CallHistory() {
                           <td className="px-6 py-4 text-sm text-gray-800 text-nowrap">
                             {user.date}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-800 text-nowrap">
-                            {`${parseFloat(user.calltime).toFixed(2)} Sec`}
+                          <td className="px-6 py-4 text-sm text-gray-800 whitespace-nowrap">
+                            {formatCallTime(user.calltime)}
                           </td>
+
                           <td className="px-6 py-4 text-sm font-medium text-gray-800 text-center text-nowrap">
                             {/* {user.cost} */}
-                            {`$ ${parseFloat(user.cost).toFixed(2)}`}
+                            {`$ ${parseFloat(user.cost)}`}
                           </td>
                           <td className="px-6 py-4 text-center">
                             <button
@@ -353,8 +398,8 @@ export default function CallHistory() {
                                   const updatedSelection = e.target.checked
                                     ? [...selectedDetailIds, user.id]
                                     : selectedDetailIds.filter(
-                                        (id) => id !== user.id
-                                      );
+                                      (id) => id !== user.id
+                                    );
                                   setSelectedDetailIds(updatedSelection);
                                 }}
                               />
@@ -363,12 +408,12 @@ export default function CallHistory() {
                         </>
                       ) : (
                         <>
-                          <td className="px-6 py-4 text-sm text-gray-800 text-nowrap">
-                            {/* {user.totalTime} */}
-                            {`${parseFloat(user.totalTime).toFixed(2)} Sec`}
+                          <td className="px-6 py-4 text-sm text-gray-800 whitespace-nowrap">
+                            {formatSecondsToMinSec(user.totalTime)}
                           </td>
+
                           <td className="px-6 py-4 text-sm text-gray-800 text-nowrap">
-                            {`$ ${parseFloat(user.totalCost).toFixed(2)}`}
+                            {`$ ${parseFloat(user.totalCost)}`}
                           </td>
                           <td className="px-6 py-4 text-center">
                             <button
