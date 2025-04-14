@@ -830,7 +830,44 @@ export default function Audiocallpre() {
           </div>
         )}
 
-        {isSessionStarted && (
+      
+        <style jsx>{`
+          @keyframes zoomInOut {
+            0%,
+            100% {
+              transform: scale(1);
+            }
+            50% {
+              transform: scale(1.1);
+            }
+          }
+          .animate-zoomInOut {
+            animation: zoomInOut 8s ease-in-out infinite;
+          }
+          .blink {
+            position: relative;
+            border: 4px solid #006400; /* Dark green */
+            border-radius: 24px;
+            padding: 20px;
+            background: white;
+            animation: borderBlink 1.5s infinite ease-in-out;
+            transition: all 0.3s ease;
+          }
+
+          @keyframes borderBlink {
+            0% {
+              box-shadow: 0 0 0px #006400;
+            }
+            50% {
+              box-shadow: 0 0 10px 4px #228b22; /* subtle glow */
+            }
+            100% {
+              box-shadow: 0 0 0px #006400;
+            }
+          }
+        `}</style>
+      </div>
+      {isSessionStarted && (
           <div className="flex space-x-4 w-full justify-center">
             <button
               onClick={toggleMute}
@@ -882,42 +919,6 @@ export default function Audiocallpre() {
           </div>
         )}
 
-        <style jsx>{`
-          @keyframes zoomInOut {
-            0%,
-            100% {
-              transform: scale(1);
-            }
-            50% {
-              transform: scale(1.1);
-            }
-          }
-          .animate-zoomInOut {
-            animation: zoomInOut 8s ease-in-out infinite;
-          }
-          .blink {
-            position: relative;
-            border: 4px solid #006400; /* Dark green */
-            border-radius: 24px;
-            padding: 20px;
-            background: white;
-            animation: borderBlink 1.5s infinite ease-in-out;
-            transition: all 0.3s ease;
-          }
-
-          @keyframes borderBlink {
-            0% {
-              box-shadow: 0 0 0px #006400;
-            }
-            50% {
-              box-shadow: 0 0 10px 4px #228b22; /* subtle glow */
-            }
-            100% {
-              box-shadow: 0 0 0px #006400;
-            }
-          }
-        `}</style>
-      </div>
     </>
   );
 } // End of Audiocallpre component

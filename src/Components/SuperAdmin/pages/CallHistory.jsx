@@ -225,7 +225,7 @@ export default function CallHistory() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="p-2 border rounded-md text-sm"
+                className="p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 text-sm"
               />
             </div>
             <div>
@@ -236,7 +236,7 @@ export default function CallHistory() {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="p-2 border rounded-md text-sm"
+                className="p-2 border text-sm border-gray-300 rounded-lg focus:ring focus:ring-blue-200"
               />
             </div>
             <div>
@@ -244,7 +244,7 @@ export default function CallHistory() {
                 Select Admin
               </label>
               <select
-                className="p-2 border rounded-md text-sm"
+                className="p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 text-sm"
                 onChange={(e) => {
                   setSelectedUser(e.target.value);
                 }}
@@ -455,7 +455,7 @@ export default function CallHistory() {
             Prev
           </button>
 
-          {[...Array(totalPages)].map((_, i) => (
+          {/* {[...Array(totalPages)].map((_, i) => (
             <button
               key={i}
               onClick={() => setCurrentPage(i + 1)}
@@ -464,7 +464,7 @@ export default function CallHistory() {
             >
               {i + 1}
             </button>
-          ))}
+          ))} */}
 
           <button
             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
