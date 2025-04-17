@@ -41,8 +41,6 @@ export default function CallHistory() {
     });
   }, []);
 
-
-
   console.log("adminValues", selectedUser);
 
   const aggregateUsers = (history) => {
@@ -69,7 +67,7 @@ export default function CallHistory() {
         seconds = min * 60 + sec;
       } else {
         // Try parsing if calltime is just seconds
-        const raw = parseInt(record.calltime.replace(/\D/g, ''), 10);
+        const raw = parseInt(record.calltime.replace(/\D/g, ""), 10);
         seconds = isNaN(raw) ? 0 : raw;
       }
 
@@ -80,13 +78,12 @@ export default function CallHistory() {
     return Array.from(userMap.values());
   };
 
-
   // Filter users based on view mode
   const filteredUsers = selectedUser
     ? users.filter((user) => user.name === selectedUser)
     : aggregatedUsers.filter((user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+        user.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
   const totalPages = Math.ceil(filteredUsers.length / recordsPerPage);
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
@@ -128,7 +125,7 @@ export default function CallHistory() {
 
   const formatDate = (dateStr) => {
     const d = new Date(dateStr);
-    return d.toISOString().split('T')[0]; // returns 'YYYY-MM-DD'
+    return d.toISOString().split("T")[0]; // returns 'YYYY-MM-DD'
   };
 
   const deletehstory = async () => {
@@ -147,7 +144,7 @@ export default function CallHistory() {
     });
 
     try {
-      const response = deleteAllRecordings({
+      deleteAllRecordings({
         superadminname: "admin@123",
         fromDate: formattedStart,
         toDate: formattedEnd,
@@ -186,28 +183,28 @@ export default function CallHistory() {
   };
 
   const formatCallTime = (calltime) => {
-    if (!calltime) return '0 sec';
+    if (!calltime) return "0 sec";
 
     // If it's already in "min=X, sec=Y" format
     const match = calltime.match(/min=(\d+),\s*sec=(\d+)/);
     if (match) {
       const minutes = parseInt(match[1], 10);
       const seconds = parseInt(match[2], 10);
-      return `${minutes > 0 ? `${minutes} min ` : ''}${seconds} sec`;
+      return `${minutes > 0 ? `${minutes} min ` : ""}${seconds} sec`;
     }
 
     // If it's a raw second value (e.g., "114 Sec" or just "114")
-    const rawSeconds = parseInt(calltime.replace(/\D/g, ''), 10);
+    const rawSeconds = parseInt(calltime.replace(/\D/g, ""), 10);
     const minutes = Math.floor(rawSeconds / 60);
     const seconds = rawSeconds % 60;
 
-    return `${minutes > 0 ? `${minutes} min ` : ''}${seconds} sec`;
+    return `${minutes > 0 ? `${minutes} min ` : ""}${seconds} sec`;
   };
 
   const formatSecondsToMinSec = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins > 0 ? `${mins} min ` : ''}${secs} sec`;
+    return `${mins > 0 ? `${mins} min ` : ""}${secs} sec`;
   };
 
   return (
@@ -409,8 +406,8 @@ export default function CallHistory() {
                                   const updatedSelection = e.target.checked
                                     ? [...selectedDetailIds, user.id]
                                     : selectedDetailIds.filter(
-                                      (id) => id !== user.id
-                                    );
+                                        (id) => id !== user.id
+                                      );
                                   setSelectedDetailIds(updatedSelection);
                                 }}
                               />
@@ -467,7 +464,9 @@ export default function CallHistory() {
           ))} */}
 
           <button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
             disabled={currentPage === totalPages}
             className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
           >
