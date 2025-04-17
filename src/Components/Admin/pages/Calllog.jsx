@@ -19,21 +19,27 @@ export default function Calllog() {
     const id = localStorage.getItem("admin_id");
     console.log("id", id);
     fetch(
-      `${import.meta.env.VITE_APP_API_URL
+      `${
+        import.meta.env.VITE_APP_API_URL
       }/add/recordings/recordings/admin/${id}`
     )
       .then((res) => res.json())
       .then((data) => {
+        if (!data.recordings) return;
+
+        const reversedRecordings = data.recordings.reverse(); // ⬅️ Reverse here
+
         const uniqueTeams = [];
         const seen = new Set();
-        data.recordings?.forEach((item) => {
+        reversedRecordings.forEach((item) => {
           if (item.teamName && !seen.has(item.teamId)) {
             seen.add(item.teamId);
             uniqueTeams.push({ id: item.teamId, name: item.teamName });
           }
         });
+
         setTeams(uniqueTeams);
-        console.log("uniqueTeams",data)
+        console.log("reversedRecordings", reversedRecordings);
       })
       .catch((err) => console.error("Error fetching team names:", err));
   }, []);
@@ -43,7 +49,8 @@ export default function Calllog() {
       const id = localStorage.getItem("admin_id");
       console.log("id", id);
       fetch(
-        `${import.meta.env.VITE_APP_API_URL
+        `${
+          import.meta.env.VITE_APP_API_URL
         }/add/recordings/recordings/admin/${id}`
       )
         .then((response) => response.json())
@@ -72,7 +79,8 @@ export default function Calllog() {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_APP_API_URL
+        `${
+          import.meta.env.VITE_APP_API_URL
         }/add/recordings/recordings/delete-from-url`,
         {
           method: "DELETE",
@@ -140,13 +148,13 @@ export default function Calllog() {
 
   const paginatedData = selectedTeam
     ? recordings.slice(
-      (currentPage - 1) * itemsPerPage,
-      currentPage * itemsPerPage
-    )
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      )
     : filteredTeams.slice(
-      (currentPage - 1) * itemsPerPage,
-      currentPage * itemsPerPage
-    );
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      );
 
   const totalPages = selectedTeam
     ? Math.ceil(recordings.length / itemsPerPage)
@@ -242,64 +250,64 @@ export default function Calllog() {
             <tbody className="divide-y divide-gray-300 bg-white">
               {!selectedTeam
                 ? paginatedData.map((team) => (
-                  <tr
-                    key={team.id}
-                    className="hover:bg-gray-100 transition cursor-pointer"
-                    onClick={() => handleTeamSelect(team)}
-                  >
-                    <td className="px-6 py-4 text-sm font-medium text-gray-800">
-                      {team.name}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <button className="text-blue-500 hover:text-blue-700 transition">
-                        View Recordings
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                    <tr
+                      key={team.id}
+                      className="hover:bg-gray-100 transition cursor-pointer"
+                      onClick={() => handleTeamSelect(team)}
+                    >
+                      <td className="px-6 py-4 text-sm font-medium text-gray-800">
+                        {team.name}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <button className="text-blue-500 hover:text-blue-700 transition">
+                          View Recordings
+                        </button>
+                      </td>
+                    </tr>
+                  ))
                 : paginatedData.map((recording, index) => (
-                  <tr key={index} className="hover:bg-gray-100 transition">
-                    <td className="px-4 py-4 text-center">
-                      <input
-                        type="checkbox"
-                        checked={selectedRecordings.some(
-                          (r) => r.filename === recording.filename
-                        )}
-                        onChange={() => handleCheckboxChange(recording)}
-                      />
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-800">
-                      {recording.filename || "Not Available"}
-                    </td>
-                    <td className="px-6 py-4 text-center flex items-center justify-center gap-4">
-                      <button
-                        className="text-blue-500 hover:text-blue-700 transition"
-                        onClick={() => handlePlay(index)}
-                      >
-                        Play
-                      </button>
+                    <tr key={index} className="hover:bg-gray-100 transition">
+                      <td className="px-4 py-4 text-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedRecordings.some(
+                            (r) => r.filename === recording.filename
+                          )}
+                          onChange={() => handleCheckboxChange(recording)}
+                        />
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-800">
+                        {recording.filename || "Not Available"}
+                      </td>
+                      <td className="px-6 py-4 text-center flex items-center justify-center gap-4">
+                        <button
+                          className="text-blue-500 hover:text-blue-700 transition"
+                          onClick={() => handlePlay(index)}
+                        >
+                          Play
+                        </button>
 
-                      {playing === index && (
-                        <audio controls autoPlay className="mt-2">
-                          <source src={recording.url} type="audio/mp3" />
-                          Your browser does not support the audio element.
-                        </audio>
-                      )}
-                    </td>
-                    <td>
-                      <button
-                        className="text-red-500 hover:text-red-700 transition flex justify-center mx-auto"
-                        onClick={() => {
-                          setSelectedFileToDelete(recording);
-                          setMultiDeleteMode(false);
-                          setDeletePopup(true);
-                        }}
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                        {playing === index && (
+                          <audio controls autoPlay className="mt-2">
+                            <source src={recording.url} type="audio/mp3" />
+                            Your browser does not support the audio element.
+                          </audio>
+                        )}
+                      </td>
+                      <td>
+                        <button
+                          className="text-red-500 hover:text-red-700 transition flex justify-center mx-auto"
+                          onClick={() => {
+                            setSelectedFileToDelete(recording);
+                            setMultiDeleteMode(false);
+                            setDeletePopup(true);
+                          }}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
             </tbody>
           </table>
         </div>
@@ -316,14 +324,15 @@ export default function Calllog() {
 
             <button
               className="px-4 py-1 bg-gray-200 rounded disabled:opacity-50"
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
               disabled={currentPage === totalPages}
             >
               Next
             </button>
           </div>
         )}
-
       </div>
 
       {/* Delete Confirmation Popup */}

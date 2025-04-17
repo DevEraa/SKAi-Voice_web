@@ -134,7 +134,7 @@ const superadminApp = () => {
                 ...values
             }
             console.log("all data history", data)
-            const response = await adminAppService.post(`/superadmin/deletehistory`, {
+            const response = await adminAppService.delete(`/add/recordings/superadmin/delete`, {
                 data: data
             });
             return response;
