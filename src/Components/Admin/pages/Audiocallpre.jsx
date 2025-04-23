@@ -4,16 +4,13 @@ import axios from "axios";
 import Navbar from "./Navbar";
 import image from "../../../assets/startsession.webp";
 
-// Agora App ID - with null check and default value
-// Add a default empty string to avoid null
-const API_URL = `${import.meta.env.VITE_APP_API_URL}/call`; // Your backend API URL
+const API_URL = `${import.meta.env.VITE_APP_API_URL}/call`;
 
 export default function Audiocallpre() {
   const [callTime, setCallTime] = useState("0 min 0 sec");
   const startTimeRef = useRef(null);
-  const [totalBillableMinutes, setTotalBillableMinutes] = useState(0);
-  const participantCountRef = useRef(1); // Start with 1 (admin)
-  const participantTimeTrackingRef = useRef({}); // Track join/leave times
+  const participantCountRef = useRef(1);
+  const participantTimeTrackingRef = useRef({});
 
   const startCall = () => {
     startTimeRef.current = Date.now();
@@ -43,7 +40,7 @@ export default function Audiocallpre() {
   const [isSessionStarted, setIsSessionStarted] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [participants, setParticipants] = useState([]);
-  const [meetingName, setMeetingName] = useState("Team Meeting");
+  const [meetingName] = useState("Team Meeting");
   const [appId, setAppId] = useState(null);
   const [channelName, setChannelName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -220,15 +217,15 @@ export default function Audiocallpre() {
   };
 
   useEffect(() => {
-    const channelNameValue = sessionStorage.getItem("channel_name") || "";
-    const appCertificateValue = sessionStorage.getItem("app_certificate") || "";
-    const appIdValue = sessionStorage.getItem("app_id");
-    // const APP_ID = sessionStorage.getItem("app_id")
+    const channelNameValue = localStorage.getItem("channel_name") || "";
+    const appCertificateValue = localStorage.getItem("app_certificate") || "";
+    const appIdValue = localStorage.getItem("app_id");
+    // const APP_ID = localStorage.getItem("app_id")
     setAppId(appIdValue);
 
     // Alert if app_id is missing
     if (!appIdValue) {
-      console.error("App ID is missing in sessionStorage");
+      console.error("App ID is missing in localStorage");
       setError("Agora App ID is missing. Please check your configuration.");
     }
 
@@ -432,7 +429,6 @@ export default function Audiocallpre() {
     if (!sessionStartTime) return 0;
 
     const endTime = new Date();
-    const sessionDurationMinutes = (endTime - sessionStartTime) / (1000 * 60);
 
     // For each participant still in the call, calculate their time
     Object.keys(participantTimeTrackingRef.current).forEach((uid) => {
@@ -452,7 +448,6 @@ export default function Audiocallpre() {
     console.log(`Total billable minutes: ${totalTime.toFixed(2)}`);
     return totalTime;
   };
-
   const startSession = async () => {
     setLoading(true);
     setError("");
@@ -477,7 +472,7 @@ export default function Audiocallpre() {
       const response = await axios.post(`${API_URL}/meetings/create`, {
         meetingName: meetingName,
         adminName: `${adminName}`,
-        id: sessionStorage.getItem("adminid") || adminId,
+        id: localStorage.getItem("adminid") || adminId,
       });
 
       const { channelName, token, adminUid } = response.data;
@@ -535,6 +530,33 @@ export default function Audiocallpre() {
     }
   };
 
+  useEffect(() => {
+    // 1. Load config
+    const appId = localStorage.getItem("app_id");
+    const token = localStorage.getItem("agora_token"); // optional
+    const channel = localStorage.getItem("channel_name");
+
+    // 2. Check URL for trigger
+    const params = new URLSearchParams(window.location.search);
+    const shouldStart = params.get("triggerSession") === "true";
+
+    // 3. Validate config
+    if (!appId) {
+      setError("Agora App ID is missing. Please check your configuration.");
+      return;
+    }
+
+    if (shouldStart) {
+      // remove the flag so it doesn't re-trigger on reload
+      params.delete("triggerSession");
+      const newUrl = window.location.pathname + "?" + params.toString();
+      window.history.replaceState({}, "", newUrl);
+
+      // kick off session
+      startSession(appId, token, channel);
+    }
+  }, []);
+
   const saveCallHistory = async (min, sec) => {
     console.log("Time call", min, "sec", sec);
 
@@ -544,7 +566,6 @@ export default function Audiocallpre() {
 
       // Calculate total billable minutes
       const billableMinutes = calculateBillableMinutes();
-      setTotalBillableMinutes(billableMinutes);
 
       const historyData = {
         name: adminName || "Unknown User",
@@ -678,6 +699,12 @@ export default function Audiocallpre() {
 
   console.log(callTime, "call time");
 
+  const handleStartInNewTab = () => {
+    // ensure your criar App ID was stored before
+    // e.g., at login or settings: localStorage.setItem('app_id', process.env.REACT_APP_AGORA_ID);
+    localStorage.setItem("triggerSession", "true");
+    window.open(`/admindashboard?triggerSession=true`, "_blank");
+  };
   return (
     <>
       {!isSessionStarted && <Navbar />}
@@ -710,7 +737,7 @@ export default function Audiocallpre() {
             </div>
             <div className="p-6 text-center border-t border-blue-50">
               <button
-                onClick={startSession}
+                onClick={handleStartInNewTab}
                 className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-bold transform transition-all duration-300 hover:scale-105 shadow-md"
                 disabled={loading}
               >
@@ -830,7 +857,6 @@ export default function Audiocallpre() {
           </div>
         )}
 
-      
         <style jsx>{`
           @keyframes zoomInOut {
             0%,
@@ -868,57 +894,56 @@ export default function Audiocallpre() {
         `}</style>
       </div>
       {isSessionStarted && (
-          <div className="flex space-x-4 w-full justify-center">
-            <button
-              onClick={toggleMute}
-              className={`p-3 rounded-full ${
-                isMuted
-                  ? "bg-red-500 hover:bg-red-600"
-                  : "bg-blue-500 hover:bg-blue-600"
-              } transition-colors duration-200`}
-            >
-              {isMuted ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="lucide lucide-mic-off"
-                >
-                  <line x1="2" x2="22" y1="2" y2="22" />
-                  <path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2" />
-                  <path d="M5 10v2a7 7 0 0 0 12 5" />
-                  <path d="M15 9.34V5a3 3 0 0 0-5.68-1.33" />
-                  <path d="M9 9v3a3 3 0 0 0 5.12 2.12" />
-                  <line x1="12" x2="12" y1="19" y2="22" />
-                </svg>
-              ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="lucide lucide-mic"
-                >
-                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                  <line x1="12" x2="12" y1="19" y2="22" />
-                </svg>
-              )}
-            </button>
-          </div>
-        )}
-
+        <div className="flex space-x-4 w-full justify-center">
+          <button
+            onClick={toggleMute}
+            className={`p-3 rounded-full ${
+              isMuted
+                ? "bg-red-500 hover:bg-red-600"
+                : "bg-blue-500 hover:bg-blue-600"
+            } transition-colors duration-200`}
+          >
+            {isMuted ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="lucide lucide-mic-off"
+              >
+                <line x1="2" x2="22" y1="2" y2="22" />
+                <path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2" />
+                <path d="M5 10v2a7 7 0 0 0 12 5" />
+                <path d="M15 9.34V5a3 3 0 0 0-5.68-1.33" />
+                <path d="M9 9v3a3 3 0 0 0 5.12 2.12" />
+                <line x1="12" x2="12" y1="19" y2="22" />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="lucide lucide-mic"
+              >
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <line x1="12" x2="12" y1="19" y2="22" />
+              </svg>
+            )}
+          </button>
+        </div>
+      )}
     </>
   );
 } // End of Audiocallpre component

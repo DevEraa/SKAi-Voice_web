@@ -10,11 +10,11 @@ const adminHooks = () => {
             console.log(response, "response in login");
             if (response.message === "✅ Login successful!") {
                 console.log("Login successful");
-                sessionStorage.setItem('token', JSON.stringify(response));
-                sessionStorage.setItem('channel_name', (response.channel_name));
-                sessionStorage.setItem('app_id', JSON.stringify(response.app_id));
-                sessionStorage.setItem('app_certificate', (response.token_id));
-                sessionStorage.setItem('adminid', JSON.stringify(response.id));
+                localStorage.setItem('token', response);
+                localStorage.setItem('channel_name', (response.channel_name));
+                localStorage.setItem('app_id', response.app_id);
+                localStorage.setItem('app_certificate', (response.token_id));
+                localStorage.setItem('adminid', response.id);
 
             } else {
                 console.log("Login failed");
@@ -29,7 +29,7 @@ const adminHooks = () => {
 
     const createTeamUser = async (data) => {
         try {
-            const adminid = JSON.parse(sessionStorage.getItem('adminid'));
+            const adminid = localStorage.getItem('adminid');
             const values = {
                 ...data,
                 admin_id: adminid
@@ -90,7 +90,7 @@ const adminHooks = () => {
         }
     }
 
-    
+
 
     return {
         login,

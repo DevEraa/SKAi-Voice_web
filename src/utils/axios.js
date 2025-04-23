@@ -3,7 +3,7 @@ console.log(import.meta.env.VITE_APP_API_URL, "import.meta.env.REACT_APP_API_URL
 
 
 export const useAdminAppService = () => {
-    const userData = JSON.parse(sessionStorage.getItem('token') || '{}');
+    const userData = localStorage.getItem('token') || '{}';
     const adminAppService = Axios.create({
         baseURL: `${import.meta.env.VITE_APP_API_URL}`,
     });

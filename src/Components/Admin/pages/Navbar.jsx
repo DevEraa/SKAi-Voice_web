@@ -650,7 +650,7 @@ const Navbar = ({ setusercreated }) => {
                   <input
                     type="text"
                     readOnly
-                    value={sessionStorage.getItem("channel_name")}
+                    value={localStorage.getItem("channel_name")}
                     name="Channelid"
                     // placeholder="Channel ID"
                     // onChange={handleChange}
