@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Navbar from "./Navbar";
+import Hls from "hls.js";
 import { Search, Trash2 } from "lucide-react";
+import HLSAudioPlayer from './HLSAudioPlayer ';
 
 export default function Calllog() {
+  const videoRef = useRef(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [recordings, setRecordings] = useState([]);
   const [selectedRecordings, setSelectedRecordings] = useState([]);
@@ -14,91 +17,164 @@ export default function Calllog() {
   const [deletePopup, setDeletePopup] = useState(false);
   const [selectedFileToDelete, setSelectedFileToDelete] = useState(null);
   const [multiDeleteMode, setMultiDeleteMode] = useState(false);
+  const [deletebyurl, setdeletebyurl] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [deleteloading, setdeleteloading] = useState(false)
 
+
+  // useEffect(() => {
+  //   const id = localStorage.getItem("admin_id");
+  //   console.log("id", id);
+  //   fetch(
+  //     `${
+  //       import.meta.env.VITE_APP_API_URL
+  //     }/add/recordings/recordings/admin/${id}`
+  //   )
+  //     .then((res) => res.json())
+  //     .then((data) => {
+  //       if (!data.recordings) return;
+
+  //       const reversedRecordings = data.recordings.reverse(); // ⬅️ Reverse here
+
+  //       const uniqueTeams = [];
+  //       const seen = new Set();
+  //       reversedRecordings.forEach((item) => {
+  //         if (item.teamName && !seen.has(item.teamId)) {
+  //           seen.add(item.teamId);
+  //           uniqueTeams.push({ id: item.teamId, name: item.teamName });
+  //         }
+  //       });
+
+  //       setTeams(uniqueTeams);
+  //       console.log("reversedRecordings", reversedRecordings);
+  //     })
+  //     .catch((err) => console.error("Error fetching team names:", err));
+  // }, []);
   useEffect(() => {
+    setLoading(true);
     const id = localStorage.getItem("admin_id");
     console.log("id", id);
-    fetch(
-      `${
-        import.meta.env.VITE_APP_API_URL
-      }/add/recordings/recordings/admin/${id}`
-    )
+
+    fetch(`${import.meta.env.VITE_APP_API_URL}/agora-recording/agora-recording/admin/${id}`)
       .then((res) => res.json())
-      .then((data) => {
+      .then(async (data) => {
+
         if (!data.recordings) return;
 
-        const reversedRecordings = data.recordings.reverse(); // ⬅️ Reverse here
+        const reversedRecordings = data.recordings.reverse();
 
         const uniqueTeams = [];
         const seen = new Set();
-        reversedRecordings.forEach((item) => {
-          if (item.teamName && !seen.has(item.teamId)) {
-            seen.add(item.teamId);
-            uniqueTeams.push({ id: item.teamId, name: item.teamName });
-          }
-        });
 
+        for (const item of reversedRecordings) {
+          const urlParts = item.url.split("/");
+          const teamId = urlParts.length > 4 ? urlParts[4] : null;
+
+          if (teamId && !seen.has(teamId)) {
+            seen.add(teamId);
+
+            // 🧠 Fetch team name from backend
+            try {
+              const res = await fetch(`${import.meta.env.VITE_APP_API_URL}/agora-recording/teams/${teamId}`);
+              const teamData = await res.json();
+              uniqueTeams.push({ id: teamId, name: teamData.name });
+              setLoading(false);
+            } catch (err) {
+              console.error(`Failed to fetch name for team ${teamId}`, err);
+              uniqueTeams.push({ id: teamId, name: "Unknown" });
+              setLoading(false);
+            }
+          }
+        }
+
+        console.log("teams with names:", uniqueTeams);
         setTeams(uniqueTeams);
-        console.log("reversedRecordings", reversedRecordings);
+        setLoading(false);
       })
-      .catch((err) => console.error("Error fetching team names:", err));
+      .catch((err) => console.error("Error fetching recordings:", err));
+    setLoading(false);
   }, []);
 
+
+  // useEffect(() => {
+  //   if (selectedTeam) {
+  //     const id = selectedTeam.id;
+  //     console.log("selectedTeam", selectedTeam);
+  //     fetch(
+  //       `${import.meta.env.VITE_APP_API_URL
+  //       }/agora-recording/agora-recording/${id}`
+  //     )
+
+  //       .then((response) => response.json())
+  //       .then((data) => {
+  //         const filtered = data.recordings?.filter(
+  //           (rec) => rec.teamId === selectedTeam.id
+  //         );
+  //         console.log("response",data.recordings)
+  //         // setRecordings(filtered || []);
+  //         setRecordings(data.recordings);
+  //         setSelectedRecordings([]);
+  //       })
+  //       .catch((error) => console.error("Error fetching recordings:", error));
+  //   }
+  // }, [selectedTeam]);
   useEffect(() => {
     if (selectedTeam) {
-      const id = localStorage.getItem("admin_id");
-      console.log("id", id);
-      fetch(
-        `${
-          import.meta.env.VITE_APP_API_URL
-        }/add/recordings/recordings/admin/${id}`
-      )
+      setLoading(true);
+      const id = selectedTeam.id;
+      fetch(`${import.meta.env.VITE_APP_API_URL}/agora-recording/agora-recording/${id}`)
         .then((response) => response.json())
         .then((data) => {
-          const filtered = data.recordings?.filter(
-            (rec) => rec.teamId === selectedTeam.id
+          console.log("data.recordings", data.recordings)
+          const m3u8Files = (data.recordings || []).filter((rec) =>
+            rec.filename.endsWith(".m3u8")
           );
-          setRecordings(filtered || []);
+          setRecordings(m3u8Files); // ✅ Only store playable ones
           setSelectedRecordings([]);
+          setLoading(false);
         })
         .catch((error) => console.error("Error fetching recordings:", error));
     }
-  }, [selectedTeam]);
+  }, [selectedTeam, deletebyurl]);
+
 
   const handlePlay = (index) => {
     setPlaying(playing === index ? null : index);
   };
 
   const handleConfirmDelete = async () => {
+    setdeleteloading(true)
+    console.log("test", selectedFileToDelete?.url)
     let filesToDelete = [];
     if (multiDeleteMode) {
-      filesToDelete = selectedRecordings;
+      console.log("multiple")
+      filesToDelete = selectedRecordings.map(file => file.url);
+      // console.log("selectedRecordings",selectedRecordings)
     } else if (selectedFileToDelete) {
-      filesToDelete = [selectedFileToDelete];
+      console.log("single")
+      filesToDelete = [selectedFileToDelete?.url];
     }
-
+    console.log("filesToDelete", filesToDelete)
     try {
       const response = await fetch(
-        `${
-          import.meta.env.VITE_APP_API_URL
-        }/add/recordings/recordings/delete-from-url`,
+        `${import.meta.env.VITE_APP_API_URL
+        }/agora-recording/delete-recording-by-url`,
         {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            superadminname: "admin@123",
-            files: filesToDelete.map((file) => ({
-              url: file.url,
-              teamId: file.teamId,
-              filename: file.filename,
-            })),
+            url: filesToDelete,
           }),
         }
       );
 
       const result = await response.json();
+      setdeletebyurl(false);
+      setdeleteloading(false);
+      setDeletePopup(false);
+
       if (result.success) {
         setRecordings((prev) =>
           prev.filter(
@@ -143,18 +219,19 @@ export default function Calllog() {
   };
 
   const filteredTeams = teams.filter((team) =>
-    team.name.toLowerCase().includes(searchTerm.toLowerCase())
+    team.id
+      .includes(searchTerm.toLowerCase())
   );
 
   const paginatedData = selectedTeam
     ? recordings.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-      )
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    )
     : filteredTeams.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-      );
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    );
 
   const totalPages = selectedTeam
     ? Math.ceil(recordings.length / itemsPerPage)
@@ -164,6 +241,30 @@ export default function Calllog() {
     setSelectedTeam(team);
     setCurrentPage(1);
   };
+
+  // useEffect(() => {
+  //   if (!url || !shouldPlay) return;
+
+  //   const video = videoRef.current;
+  //   let hls;
+
+  //   if (Hls.isSupported()) {
+  //     hls = new Hls();
+  //     hls.loadSource(url);
+  //     hls.attachMedia(video);
+  //     video.play();
+  //   } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+  //     video.src = url;
+  //     video.play();
+  //   }
+
+  //   return () => {
+  //     if (hls) {
+  //       hls.destroy();
+  //     }
+  //   };
+  // }, [url, shouldPlay]);
+  console.log("selectedFileToDelete", selectedFileToDelete)
 
   return (
     <>
@@ -219,37 +320,46 @@ export default function Calllog() {
           </div>
         )}
 
-        <div className="overflow-x-auto shadow-lg rounded-lg">
-          <table className="min-w-full divide-y divide-gray-300">
-            <thead className="bg-blue-600 text-white">
-              <tr>
-                {selectedTeam && (
-                  <th className="px-4 py-3">
-                    <input
-                      type="checkbox"
-                      checked={paginatedData.every((r) =>
-                        selectedRecordings.some(
-                          (s) => s.filename === r.filename
-                        )
-                      )}
-                      onChange={handleSelectAll}
-                    />
+
+        {loading ? (
+          <div className="flex justify-center items-center h-48">
+            <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+            </svg>
+          </div>
+        ) : (
+          <div className="overflow-x-auto shadow-lg rounded-lg">
+            <table className="min-w-full divide-y divide-gray-300">
+              <thead className="bg-blue-600 text-white">
+                <tr>
+                  {selectedTeam && (
+                    <th className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={paginatedData.every((r) =>
+                          selectedRecordings.some(
+                            (s) => s.filename === r.filename
+                          )
+                        )}
+                        onChange={handleSelectAll}
+                      />
+                    </th>
+                  )}
+                  <th className="px-6 py-3 text-start text-sm font-semibold">
+                    {selectedTeam ? " File Name" : "Team Name"}
                   </th>
-                )}
-                <th className="px-6 py-3 text-start text-sm font-semibold">
-                  {selectedTeam ? " File Name" : "Team Name"}
-                </th>
-                <th className="px-6 py-3 text-center text-sm font-semibold">
-                  {selectedTeam ? "Recording" : "Actions"}
-                </th>
-                <th className="px-6 py-3 text-start text-sm font-semibold mx-auto flex justify-center">
-                  {selectedTeam && "Delete"}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-300 bg-white">
-              {!selectedTeam
-                ? paginatedData.map((team) => (
+                  <th className="px-6 py-3 text-center text-sm font-semibold">
+                    {selectedTeam ? "Recording" : "Actions"}
+                  </th>
+                  <th className="px-6 py-3 text-start text-sm font-semibold mx-auto flex justify-center">
+                    {selectedTeam && "Delete"}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-300 bg-white">
+                {!selectedTeam
+                  ? paginatedData.map((team) => (
                     <tr
                       key={team.id}
                       className="hover:bg-gray-100 transition cursor-pointer"
@@ -265,7 +375,7 @@ export default function Calllog() {
                       </td>
                     </tr>
                   ))
-                : paginatedData.map((recording, index) => (
+                  : paginatedData.map((recording, index) => (
                     <tr key={index} className="hover:bg-gray-100 transition">
                       <td className="px-4 py-4 text-center">
                         <input
@@ -279,21 +389,19 @@ export default function Calllog() {
                       <td className="px-6 py-4 text-sm font-medium text-gray-800">
                         {recording.filename || "Not Available"}
                       </td>
-                      <td className="px-6 py-4 text-center flex items-center justify-center gap-4">
+                      <td className="px-6 py-4 text-center flex flex-col items-center justify-center gap-2">
                         <button
                           className="text-blue-500 hover:text-blue-700 transition"
                           onClick={() => handlePlay(index)}
                         >
-                          Play
+                          {playing === index ? "Pause" : "Play"}
                         </button>
 
                         {playing === index && (
-                          <audio controls autoPlay className="mt-2">
-                            <source src={recording.url} type="audio/mp3" />
-                            Your browser does not support the audio element.
-                          </audio>
+                          <HLSAudioPlayer url={recording.url} shouldPlay={true} />
                         )}
                       </td>
+
                       <td>
                         <button
                           className="text-red-500 hover:text-red-700 transition flex justify-center mx-auto"
@@ -308,9 +416,10 @@ export default function Calllog() {
                       </td>
                     </tr>
                   ))}
-            </tbody>
-          </table>
-        </div>
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {totalPages > 1 && (
           <div className="flex justify-center mt-4 gap-2">
@@ -386,10 +495,11 @@ export default function Calllog() {
                 </p>
                 <div className="flex justify-center space-x-4">
                   <button
+                  disabled={deleteloading}
                     onClick={handleConfirmDelete}
                     className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
                   >
-                    Confirm Delete
+                    {deleteloading ? "Loading..." : "Confirm Delete"}
                   </button>
                   <button
                     onClick={() => {

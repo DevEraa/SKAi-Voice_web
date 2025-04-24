@@ -737,7 +737,8 @@ export default function Audiocallpre() {
             </div>
             <div className="p-6 text-center border-t border-blue-50">
               <button
-                onClick={handleStartInNewTab}
+                // onClick={handleStartInNewTab}
+                onClick={startSession}
                 className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-bold transform transition-all duration-300 hover:scale-105 shadow-md"
                 disabled={loading}
               >
