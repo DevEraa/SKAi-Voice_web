@@ -129,6 +129,7 @@ export default function CallHistory() {
   };
 
   const deletehstory = async () => {
+    console.log("delete")
     if (!startDate || !endDate) {
       alert("Please select both from and to dates.");
       return;
@@ -249,7 +250,7 @@ export default function CallHistory() {
               >
                 <option value="all">All</option>
                 {adminValues.map((admin) => (
-                  <option key={admin.id} value={admin.name}>
+                  <option key={admin.id} value={admin.id}>
                     {admin.name}
                   </option>
                 ))}

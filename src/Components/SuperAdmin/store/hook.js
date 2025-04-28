@@ -134,7 +134,7 @@ const superadminApp = () => {
                 ...values
             }
             console.log("all data history", data)
-            const response = await adminAppService.delete(`/add/recordings/superadmin/delete`, {
+            const response = await adminAppService.delete(`/agora-recording/superuser`, {
                 data: data
             });
             return response;
