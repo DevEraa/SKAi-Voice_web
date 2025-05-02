@@ -82,8 +82,8 @@ export default function CallHistory() {
   const filteredUsers = selectedUser
     ? users.filter((user) => user.name === selectedUser)
     : aggregatedUsers.filter((user) =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      user.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   const totalPages = Math.ceil(filteredUsers.length / recordsPerPage);
   const indexOfLastRecord = currentPage * recordsPerPage;
   const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
@@ -105,7 +105,7 @@ export default function CallHistory() {
   }, [deletepopup]);
 
   const deletehistory = (id) => {
-    console.log(id);
+    console.log("id",id);
     setuserToDelete(id);
     setDeletepopup(true);
   };
@@ -376,15 +376,18 @@ export default function CallHistory() {
                       {selectedUser ? (
                         <>
                           <td className="px-6 py-4 text-sm text-gray-800 text-nowrap">
-                            {user.date}
+                            {user.date
+                              ? new Date(user.date).toLocaleDateString("en-GB") // DD/MM/YYYY
+                              : "Not Available"}
                           </td>
+
                           <td className="px-6 py-4 text-sm text-gray-800 whitespace-nowrap">
                             {formatCallTime(user.calltime)}
                           </td>
 
                           <td className="px-6 py-4 text-sm font-medium text-gray-800 text-center text-nowrap">
                             {/* {user.cost} */}
-                            {`$ ${parseFloat(user.cost)}`}
+                            {`$ ${parseFloat(user.cost).toFixed(4)}`}
                           </td>
                           <td className="px-6 py-4 text-center">
                             <button
@@ -407,8 +410,8 @@ export default function CallHistory() {
                                   const updatedSelection = e.target.checked
                                     ? [...selectedDetailIds, user.id]
                                     : selectedDetailIds.filter(
-                                        (id) => id !== user.id
-                                      );
+                                      (id) => id !== user.id
+                                    );
                                   setSelectedDetailIds(updatedSelection);
                                 }}
                               />
@@ -422,7 +425,7 @@ export default function CallHistory() {
                           </td>
 
                           <td className="px-6 py-4 text-sm text-gray-800 text-nowrap">
-                            {`$ ${parseFloat(user.totalCost)}`}
+                            {`$ ${parseFloat(user.totalCost).toFixed(4)}`}
                           </td>
                           <td className="px-6 py-4 text-center">
                             <button

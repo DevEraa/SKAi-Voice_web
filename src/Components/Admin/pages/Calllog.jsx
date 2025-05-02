@@ -51,50 +51,59 @@ export default function Calllog() {
   //     .catch((err) => console.error("Error fetching team names:", err));
   // }, []);
   useEffect(() => {
-    setLoading(true);
-    const id = localStorage.getItem("admin_id");
-    console.log("id", id);
-
-    fetch(`${import.meta.env.VITE_APP_API_URL}/agora-recording/agora-recording/admin/${id}`)
-      .then((res) => res.json())
-      .then(async (data) => {
-
-        if (!data.recordings) return;
-
-        const reversedRecordings = data.recordings.reverse();
-
+    const fetchRecordings = async () => {
+      setLoading(true);
+      const id = localStorage.getItem("admin_id");
+  
+      try {
+        const res = await fetch(`${import.meta.env.VITE_APP_API_URL}/agora-recording/agora-recording/admin/${id}`);
+        const data = await res.json();
+  
+        if (!data.recordings) {
+          setLoading(false);
+          return;
+        }
+  
+        // Step 1️⃣: Filter only .m3u8 files
+        const m3u8Recordings = data.recordings
+          .filter((rec) => rec.filename.endsWith(".m3u8"))
+          .reverse(); // Optional: latest on top
+  
+        // Step 2️⃣: Extract unique team IDs from URLs
+        const seenTeams = new Set();
         const uniqueTeams = [];
-        const seen = new Set();
-
-        for (const item of reversedRecordings) {
+  
+        for (const item of m3u8Recordings) {
           const urlParts = item.url.split("/");
           const teamId = urlParts.length > 4 ? urlParts[4] : null;
-
-          if (teamId && !seen.has(teamId)) {
-            seen.add(teamId);
-
-            // 🧠 Fetch team name from backend
+  
+          if (teamId && !seenTeams.has(teamId)) {
+            seenTeams.add(teamId);
+  
             try {
-              const res = await fetch(`${import.meta.env.VITE_APP_API_URL}/agora-recording/teams/${teamId}`);
-              const teamData = await res.json();
+              const teamRes = await fetch(`${import.meta.env.VITE_APP_API_URL}/agora-recording/teams/${teamId}`);
+              const teamData = await teamRes.json();
               uniqueTeams.push({ id: teamId, name: teamData.name });
-              setLoading(false);
             } catch (err) {
               console.error(`Failed to fetch name for team ${teamId}`, err);
               uniqueTeams.push({ id: teamId, name: "Unknown" });
-              setLoading(false);
             }
           }
         }
-
-        console.log("teams with names:", uniqueTeams);
+  
+        // Step 3️⃣: Set data
+        console.log("Filtered .m3u8 teams with names:", uniqueTeams);
         setTeams(uniqueTeams);
-        setLoading(false);
-      })
-      .catch((err) => console.error("Error fetching recordings:", err));
-    setLoading(false);
+      } catch (err) {
+        console.error("Error fetching .m3u8 recordings:", err);
+      }
+  
+      setLoading(false);
+    };
+  
+    fetchRecordings();
   }, []);
-
+  
 
   // useEffect(() => {
   //   if (selectedTeam) {
@@ -330,95 +339,123 @@ export default function Calllog() {
           </div>
         ) : (
           <div className="overflow-x-auto shadow-lg rounded-lg">
-            <table className="min-w-full divide-y divide-gray-300">
-              <thead className="bg-blue-600 text-white">
-                <tr>
-                  {selectedTeam && (
-                    <th className="px-4 py-3">
-                      <input
-                        type="checkbox"
-                        checked={paginatedData.every((r) =>
-                          selectedRecordings.some(
-                            (s) => s.filename === r.filename
-                          )
-                        )}
-                        onChange={handleSelectAll}
-                      />
-                    </th>
+          <table className="min-w-full divide-y divide-gray-300">
+  <thead className="bg-blue-600 text-white">
+    <tr>
+      {selectedTeam && (
+        <th className="px-4 py-3">
+          <input
+            type="checkbox"
+            checked={paginatedData.every((r) =>
+              selectedRecordings.some((s) => s.filename === r.filename)
+            )}
+            onChange={handleSelectAll}
+          />
+        </th>
+      )}
+      {!selectedTeam && (
+        <th className="px-6 py-3 text-left text-sm font-semibold">
+          Team Name
+        </th>
+      )}
+      <th className="px-6 py-3 text-center text-sm font-semibold">
+        {selectedTeam ? "Date" : "Actions"}
+      </th>
+      {selectedTeam && (
+        <>
+          <th className="px-6 py-3 text-center text-sm font-semibold">
+            Recording
+          </th>
+          <th className="px-6 py-3 text-center text-sm font-semibold">
+            Delete
+          </th>
+        </>
+      )}
+    </tr>
+  </thead>
+
+  {selectedTeam && paginatedData.length === 0 ? (
+    <tbody>
+      <tr>
+        <td className="px-6 py-8 text-center text-gray-500 text-sm" colSpan={5}>
+          Recording Not Available
+        </td>
+      </tr>
+    </tbody>
+  ) : (
+    <tbody className="divide-y divide-gray-300 bg-white">
+      {!selectedTeam
+        ? paginatedData.map((team) => (
+            <tr
+              key={team.id}
+              className="hover:bg-gray-100 transition cursor-pointer"
+              onClick={() => handleTeamSelect(team)}
+            >
+              <td className="px-6 py-4 text-sm font-medium text-gray-800">
+                {team.name}
+              </td>
+              <td className="px-6 py-4 text-center">
+                <button className="text-blue-500 hover:text-blue-700 transition">
+                  View Recordings
+                </button>
+              </td>
+            </tr>
+          ))
+        : paginatedData.map((recording, index) => (
+            <tr key={index} className="hover:bg-gray-100 transition">
+              <td className="px-4 py-4 text-center">
+                <input
+                  type="checkbox"
+                  checked={selectedRecordings.some(
+                    (r) => r.filename === recording.filename
                   )}
-                  <th className="px-6 py-3 text-start text-sm font-semibold">
-                    {selectedTeam ? " File Name" : "Team Name"}
-                  </th>
-                  <th className="px-6 py-3 text-center text-sm font-semibold">
-                    {selectedTeam ? "Recording" : "Actions"}
-                  </th>
-                  <th className="px-6 py-3 text-start text-sm font-semibold mx-auto flex justify-center">
-                    {selectedTeam && "Delete"}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-300 bg-white">
-                {!selectedTeam
-                  ? paginatedData.map((team) => (
-                    <tr
-                      key={team.id}
-                      className="hover:bg-gray-100 transition cursor-pointer"
-                      onClick={() => handleTeamSelect(team)}
-                    >
-                      <td className="px-6 py-4 text-sm font-medium text-gray-800">
-                        {team.name}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <button className="text-blue-500 hover:text-blue-700 transition">
-                          View Recordings
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                  : paginatedData.map((recording, index) => (
-                    <tr key={index} className="hover:bg-gray-100 transition">
-                      <td className="px-4 py-4 text-center">
-                        <input
-                          type="checkbox"
-                          checked={selectedRecordings.some(
-                            (r) => r.filename === recording.filename
-                          )}
-                          onChange={() => handleCheckboxChange(recording)}
-                        />
-                      </td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-800">
-                        {recording.filename || "Not Available"}
-                      </td>
-                      <td className="px-6 py-4 text-center flex flex-col items-center justify-center gap-2">
-                        <button
-                          className="text-blue-500 hover:text-blue-700 transition"
-                          onClick={() => handlePlay(index)}
-                        >
-                          {playing === index ? "Pause" : "Play"}
-                        </button>
+                  onChange={() => handleCheckboxChange(recording)}
+                />
+              </td>
+              <td className="px-6 py-4 text-sm font-medium text-gray-800 text-center">
+                {recording.lastModified
+                  ? new Date(recording.lastModified).toLocaleString("en-GB", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                      second: "2-digit",
+                      hour12: true,
+                    })
+                  : "Not Available"}
+              </td>
+              <td className="px-6 py-4 text-center">
+                <button
+                  className="text-blue-500 hover:text-blue-700 transition"
+                  onClick={() => handlePlay(index)}
+                >
+                  {playing === index ? "Pause" : "Play"}
+                </button>
+                {playing === index && (
+                  <HLSAudioPlayer url={recording.url} shouldPlay={true} />
+                )}
+              </td>
+              <td className="px-6 py-4 text-center">
+                <button
+                  className="text-red-500 hover:text-red-700 transition"
+                  onClick={() => {
+                    setSelectedFileToDelete(recording);
+                    setMultiDeleteMode(false);
+                    setDeletePopup(true);
+                  }}
+                >
+                  <Trash2 size={18} />
+                </button>
+              </td>
+            </tr>
+          ))}
+    </tbody>
+  )}
+</table>
 
-                        {playing === index && (
-                          <HLSAudioPlayer url={recording.url} shouldPlay={true} />
-                        )}
-                      </td>
-
-                      <td>
-                        <button
-                          className="text-red-500 hover:text-red-700 transition flex justify-center mx-auto"
-                          onClick={() => {
-                            setSelectedFileToDelete(recording);
-                            setMultiDeleteMode(false);
-                            setDeletePopup(true);
-                          }}
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
           </div>
+
         )}
 
         {totalPages > 1 && (
@@ -495,7 +532,7 @@ export default function Calllog() {
                 </p>
                 <div className="flex justify-center space-x-4">
                   <button
-                  disabled={deleteloading}
+                    disabled={deleteloading}
                     onClick={handleConfirmDelete}
                     className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
                   >
