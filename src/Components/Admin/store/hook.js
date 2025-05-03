@@ -10,7 +10,7 @@ const adminHooks = () => {
             console.log(response, "response in login");
             if (response.message === "✅ Login successful!") {
                 console.log("Login successful");
-                localStorage.setItem('token', response);
+                sessionStorage.setItem('token', response);
                 localStorage.setItem('channel_name', (response.channel_name));
                 localStorage.setItem('app_id', response.app_id);
                 localStorage.setItem('app_certificate', (response.token_id));
@@ -42,15 +42,7 @@ const adminHooks = () => {
         }
     }
 
-    // const listTeamUsers = async (pagesize, offset, search = '') => {
-    //     try {
-    //         const response = await adminAppService.get(`team/list?pagesize=${pagesize}&offset=${offset}&search=${search}`);
-    //         return response;
-    //     } catch (error) {
-    //         console.error(error);
-    //         throw new Error(error);
-    //     }
-    // }
+    
     const listTeamUsers = async (admin, pagesize, offset, search = '') => {
         try {
             const response = await adminAppService.get(`team/getuser/${admin}?pagesize=${pagesize}&offset=${offset}&search=${search}`);

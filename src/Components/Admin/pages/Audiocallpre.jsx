@@ -452,6 +452,7 @@ export default function Audiocallpre() {
     setLoading(true);
     setError("");
 
+    const appId = localStorage.getItem("app_id");
     // Check if App ID is available
     if (!appId) {
       setError("Agora App ID is missing. Please check your configuration.");
@@ -531,29 +532,13 @@ export default function Audiocallpre() {
   };
 
   useEffect(() => {
-    // 1. Load config
-    const appId = localStorage.getItem("app_id");
-    const token = localStorage.getItem("agora_token"); // optional
-    const channel = localStorage.getItem("channel_name");
-
-    // 2. Check URL for trigger
     const params = new URLSearchParams(window.location.search);
     const shouldStart = params.get("triggerSession") === "true";
-
-    // 3. Validate config
-    if (!appId) {
-      setError("Agora App ID is missing. Please check your configuration.");
-      return;
-    }
-
     if (shouldStart) {
-      // remove the flag so it doesn't re-trigger on reload
       params.delete("triggerSession");
       const newUrl = window.location.pathname + "?" + params.toString();
       window.history.replaceState({}, "", newUrl);
-
-      // kick off session
-      startSession(appId, token, channel);
+      startSession();
     }
   }, []);
 
@@ -697,14 +682,13 @@ export default function Audiocallpre() {
     }
   };
 
-  console.log(callTime, "call time");
-
   const handleStartInNewTab = () => {
-    // ensure your criar App ID was stored before
-    // e.g., at login or settings: localStorage.setItem('app_id', process.env.REACT_APP_AGORA_ID);
-    localStorage.setItem("triggerSession", "true");
-    window.open(`/admindashboard?triggerSession=true`, "_blank");
+    const currentUrl = window.location.href;
+    const url = new URL(currentUrl);
+    url.searchParams.set("triggerSession", "true");
+    window.open(url.toString(), "_blank");
   };
+
   return (
     <>
       {!isSessionStarted && <Navbar />}
@@ -738,7 +722,7 @@ export default function Audiocallpre() {
             <div className="p-6 text-center border-t border-blue-50">
               <button
                 // onClick={handleStartInNewTab}
-                onClick={startSession}
+                onClick={handleStartInNewTab}
                 className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-bold transform transition-all duration-300 hover:scale-105 shadow-md"
                 disabled={loading}
               >

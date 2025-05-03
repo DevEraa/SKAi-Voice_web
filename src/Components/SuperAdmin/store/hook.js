@@ -7,7 +7,7 @@ const superadminApp = () => {
     const superadminlogin = async (data) => {
         try {
             const response = await adminAppService.post('/superadmin/login', data);
-            localStorage.setItem("superadminToken", response.token);
+            sessionStorage.setItem("superadminToken", response.token);
             return response;
         } catch (error) {
             console.error(error);
