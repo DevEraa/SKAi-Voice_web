@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Navbar from "./Navbar";
 import Hls from "hls.js";
 import { Search, Trash2 } from "lucide-react";
-import HLSAudioPlayer from './HLSAudioPlayer ';
+import HLSAudioPlayer from "./HLSAudioPlayer ";
 
 export default function Calllog() {
   const videoRef = useRef(null);
@@ -19,122 +19,46 @@ export default function Calllog() {
   const [multiDeleteMode, setMultiDeleteMode] = useState(false);
   const [deletebyurl, setdeletebyurl] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [deleteloading, setdeleteloading] = useState(false)
+  const [deleteloading, setdeleteloading] = useState(false);
 
-
-  // useEffect(() => {
-  //   const id = localStorage.getItem("admin_id");
-  //   console.log("id", id);
-  //   fetch(
-  //     `${
-  //       import.meta.env.VITE_APP_API_URL
-  //     }/add/recordings/recordings/admin/${id}`
-  //   )
-  //     .then((res) => res.json())
-  //     .then((data) => {
-  //       if (!data.recordings) return;
-
-  //       const reversedRecordings = data.recordings.reverse(); // ⬅️ Reverse here
-
-  //       const uniqueTeams = [];
-  //       const seen = new Set();
-  //       reversedRecordings.forEach((item) => {
-  //         if (item.teamName && !seen.has(item.teamId)) {
-  //           seen.add(item.teamId);
-  //           uniqueTeams.push({ id: item.teamId, name: item.teamName });
-  //         }
-  //       });
-
-  //       setTeams(uniqueTeams);
-  //       console.log("reversedRecordings", reversedRecordings);
-  //     })
-  //     .catch((err) => console.error("Error fetching team names:", err));
-  // }, []);
   useEffect(() => {
-    const fetchRecordings = async () => {
-      setLoading(true);
-      const id = localStorage.getItem("admin_id");
-  
+    const id = localStorage.getItem("admin_id");
+    console.log("id", id);
+    const fetchTeamMembers = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_APP_API_URL}/agora-recording/agora-recording/admin/${id}`);
-        const data = await res.json();
-  
-        if (!data.recordings) {
-          setLoading(false);
-          return;
-        }
-  
-        // Step 1️⃣: Filter only .m3u8 files
-        const m3u8Recordings = data.recordings
-          .filter((rec) => rec.filename.endsWith(".m3u8"))
-          .reverse(); // Optional: latest on top
-  
-        // Step 2️⃣: Extract unique team IDs from URLs
-        const seenTeams = new Set();
-        const uniqueTeams = [];
-  
-        for (const item of m3u8Recordings) {
-          const urlParts = item.url.split("/");
-          const teamId = urlParts.length > 4 ? urlParts[4] : null;
-  
-          if (teamId && !seenTeams.has(teamId)) {
-            seenTeams.add(teamId);
-  
-            try {
-              const teamRes = await fetch(`${import.meta.env.VITE_APP_API_URL}/agora-recording/teams/${teamId}`);
-              const teamData = await teamRes.json();
-              uniqueTeams.push({ id: teamId, name: teamData.name });
-            } catch (err) {
-              console.error(`Failed to fetch name for team ${teamId}`, err);
-              uniqueTeams.push({ id: teamId, name: "Unknown" });
-            }
-          }
-        }
-  
-        // Step 3️⃣: Set data
-        console.log("Filtered .m3u8 teams with names:", uniqueTeams);
-        setTeams(uniqueTeams);
-      } catch (err) {
-        console.error("Error fetching .m3u8 recordings:", err);
+        const response = await fetch(
+          `${import.meta.env.VITE_APP_API_URL}/admin/getteambyadminid/${id}`
+        );
+        const data = await response.json();
+        setTeams(
+          data.map((item) => ({
+            id: item.id,
+            name: item.name,
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching team members:", error);
+      } finally {
+        setLoading(false);
       }
-  
-      setLoading(false);
     };
-  
-    fetchRecordings();
+    fetchTeamMembers();
   }, []);
-  
 
-  // useEffect(() => {
-  //   if (selectedTeam) {
-  //     const id = selectedTeam.id;
-  //     console.log("selectedTeam", selectedTeam);
-  //     fetch(
-  //       `${import.meta.env.VITE_APP_API_URL
-  //       }/agora-recording/agora-recording/${id}`
-  //     )
+  console.log("teamIds", teams);
 
-  //       .then((response) => response.json())
-  //       .then((data) => {
-  //         const filtered = data.recordings?.filter(
-  //           (rec) => rec.teamId === selectedTeam.id
-  //         );
-  //         console.log("response",data.recordings)
-  //         // setRecordings(filtered || []);
-  //         setRecordings(data.recordings);
-  //         setSelectedRecordings([]);
-  //       })
-  //       .catch((error) => console.error("Error fetching recordings:", error));
-  //   }
-  // }, [selectedTeam]);
   useEffect(() => {
     if (selectedTeam) {
       setLoading(true);
       const id = selectedTeam.id;
-      fetch(`${import.meta.env.VITE_APP_API_URL}/agora-recording/agora-recording/${id}`)
+      fetch(
+        `${
+          import.meta.env.VITE_APP_API_URL
+        }/agora-recording/agora-recording/${id}`
+      )
         .then((response) => response.json())
         .then((data) => {
-          console.log("data.recordings", data.recordings)
+          console.log("data.recordings", data.recordings);
           const m3u8Files = (data.recordings || []).filter((rec) =>
             rec.filename.endsWith(".m3u8")
           );
@@ -142,31 +66,55 @@ export default function Calllog() {
           setSelectedRecordings([]);
           setLoading(false);
         })
-        .catch((error) => console.error("Error fetching recordings:", error));
+        .catch((error) => {
+          console.error("Error fetching recordings:", error);
+          setLoading(false);
+        });
     }
   }, [selectedTeam, deletebyurl]);
 
+  // Filter data based on search term
+  const filteredData = selectedTeam
+    ? recordings.filter(
+        (recording) =>
+          recording.filename.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          new Date(recording.createdAt)
+            .toLocaleDateString()
+            .includes(searchTerm)
+      )
+    : teams.filter((team) =>
+        team.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
 
+  // Paginate filtered data
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedData = filteredData.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+
+  // Fixed play handler - copying from working version
   const handlePlay = (index) => {
     setPlaying(playing === index ? null : index);
   };
 
   const handleConfirmDelete = async () => {
-    setdeleteloading(true)
-    console.log("test", selectedFileToDelete?.url)
+    setdeleteloading(true);
+    console.log("test", selectedFileToDelete?.url);
     let filesToDelete = [];
     if (multiDeleteMode) {
-      console.log("multiple")
-      filesToDelete = selectedRecordings.map(file => file.url);
-      // console.log("selectedRecordings",selectedRecordings)
+      console.log("multiple");
+      filesToDelete = selectedRecordings.map((file) => file.url);
     } else if (selectedFileToDelete) {
-      console.log("single")
+      console.log("single");
       filesToDelete = [selectedFileToDelete?.url];
     }
-    console.log("filesToDelete", filesToDelete)
+    console.log("filesToDelete", filesToDelete);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_APP_API_URL
+        `${
+          import.meta.env.VITE_APP_API_URL
         }/agora-recording/delete-recording-by-url`,
         {
           method: "DELETE",
@@ -227,53 +175,12 @@ export default function Calllog() {
     }
   };
 
-  const filteredTeams = teams.filter((team) =>
-    team.id
-      .includes(searchTerm.toLowerCase())
-  );
-
-  const paginatedData = selectedTeam
-    ? recordings.slice(
-      (currentPage - 1) * itemsPerPage,
-      currentPage * itemsPerPage
-    )
-    : filteredTeams.slice(
-      (currentPage - 1) * itemsPerPage,
-      currentPage * itemsPerPage
-    );
-
-  const totalPages = selectedTeam
-    ? Math.ceil(recordings.length / itemsPerPage)
-    : Math.ceil(filteredTeams.length / itemsPerPage);
-
   const handleTeamSelect = (team) => {
     setSelectedTeam(team);
     setCurrentPage(1);
   };
 
-  // useEffect(() => {
-  //   if (!url || !shouldPlay) return;
-
-  //   const video = videoRef.current;
-  //   let hls;
-
-  //   if (Hls.isSupported()) {
-  //     hls = new Hls();
-  //     hls.loadSource(url);
-  //     hls.attachMedia(video);
-  //     video.play();
-  //   } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-  //     video.src = url;
-  //     video.play();
-  //   }
-
-  //   return () => {
-  //     if (hls) {
-  //       hls.destroy();
-  //     }
-  //   };
-  // }, [url, shouldPlay]);
-  console.log("selectedFileToDelete", selectedFileToDelete)
+  console.log("selectedFileToDelete", selectedFileToDelete);
 
   return (
     <>
@@ -329,133 +236,165 @@ export default function Calllog() {
           </div>
         )}
 
-
         {loading ? (
           <div className="flex justify-center items-center h-48">
-            <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+            <svg
+              className="animate-spin h-8 w-8 text-blue-600"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8z"
+              ></path>
             </svg>
           </div>
         ) : (
           <div className="overflow-x-auto shadow-lg rounded-lg">
-          <table className="min-w-full divide-y divide-gray-300">
-  <thead className="bg-blue-600 text-white">
-    <tr>
-      {selectedTeam && (
-        <th className="px-4 py-3">
-          <input
-            type="checkbox"
-            checked={paginatedData.every((r) =>
-              selectedRecordings.some((s) => s.filename === r.filename)
-            )}
-            onChange={handleSelectAll}
-          />
-        </th>
-      )}
-      {!selectedTeam && (
-        <th className="px-6 py-3 text-left text-sm font-semibold">
-          Team Name
-        </th>
-      )}
-      <th className="px-6 py-3 text-center text-sm font-semibold">
-        {selectedTeam ? "Date" : "Actions"}
-      </th>
-      {selectedTeam && (
-        <>
-          <th className="px-6 py-3 text-center text-sm font-semibold">
-            Recording
-          </th>
-          <th className="px-6 py-3 text-center text-sm font-semibold">
-            Delete
-          </th>
-        </>
-      )}
-    </tr>
-  </thead>
-
-  {selectedTeam && paginatedData.length === 0 ? (
-    <tbody>
-      <tr>
-        <td className="px-6 py-8 text-center text-gray-500 text-sm" colSpan={5}>
-          Recording Not Available
-        </td>
-      </tr>
-    </tbody>
-  ) : (
-    <tbody className="divide-y divide-gray-300 bg-white">
-      {!selectedTeam
-        ? paginatedData.map((team) => (
-            <tr
-              key={team.id}
-              className="hover:bg-gray-100 transition cursor-pointer"
-              onClick={() => handleTeamSelect(team)}
-            >
-              <td className="px-6 py-4 text-sm font-medium text-gray-800">
-                {team.name}
-              </td>
-              <td className="px-6 py-4 text-center">
-                <button className="text-blue-500 hover:text-blue-700 transition">
-                  View Recordings
-                </button>
-              </td>
-            </tr>
-          ))
-        : paginatedData.map((recording, index) => (
-            <tr key={index} className="hover:bg-gray-100 transition">
-              <td className="px-4 py-4 text-center">
-                <input
-                  type="checkbox"
-                  checked={selectedRecordings.some(
-                    (r) => r.filename === recording.filename
+            <table className="min-w-full divide-y divide-gray-300">
+              <thead className="bg-blue-600 text-white">
+                <tr>
+                  {selectedTeam && (
+                    <th className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={
+                          paginatedData.length > 0 &&
+                          paginatedData.every((r) =>
+                            selectedRecordings.some(
+                              (s) => s.filename === r.filename
+                            )
+                          )
+                        }
+                        onChange={handleSelectAll}
+                      />
+                    </th>
                   )}
-                  onChange={() => handleCheckboxChange(recording)}
-                />
-              </td>
-              <td className="px-6 py-4 text-sm font-medium text-gray-800 text-center">
-                {recording.lastModified
-                  ? new Date(recording.lastModified).toLocaleString("en-GB", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                      second: "2-digit",
-                      hour12: true,
-                    })
-                  : "Not Available"}
-              </td>
-              <td className="px-6 py-4 text-center">
-                <button
-                  className="text-blue-500 hover:text-blue-700 transition"
-                  onClick={() => handlePlay(index)}
-                >
-                  {playing === index ? "Pause" : "Play"}
-                </button>
-                {playing === index && (
-                  <HLSAudioPlayer url={recording.url} shouldPlay={true} />
-                )}
-              </td>
-              <td className="px-6 py-4 text-center">
-                <button
-                  className="text-red-500 hover:text-red-700 transition"
-                  onClick={() => {
-                    setSelectedFileToDelete(recording);
-                    setMultiDeleteMode(false);
-                    setDeletePopup(true);
-                  }}
-                >
-                  <Trash2 size={18} />
-                </button>
-              </td>
-            </tr>
-          ))}
-    </tbody>
-  )}
-</table>
+                  {!selectedTeam && (
+                    <th className="px-6 py-3 text-left text-sm font-semibold">
+                      Team Name
+                    </th>
+                  )}
+                  <th className="px-6 py-3 text-center text-sm font-semibold">
+                    {selectedTeam ? "Date" : "Actions"}
+                  </th>
+                  {selectedTeam && (
+                    <>
+                      <th className="px-6 py-3 text-center text-sm font-semibold">
+                        Recording
+                      </th>
+                      <th className="px-6 py-3 text-center text-sm font-semibold">
+                        Delete
+                      </th>
+                    </>
+                  )}
+                </tr>
+              </thead>
 
+              {selectedTeam && paginatedData.length === 0 ? (
+                <tbody>
+                  <tr>
+                    <td
+                      className="px-6 py-8 text-center text-gray-500 text-sm"
+                      colSpan={5}
+                    >
+                      Recording Not Available
+                    </td>
+                  </tr>
+                </tbody>
+              ) : (
+                <tbody className="divide-y divide-gray-300 bg-white">
+                  {!selectedTeam
+                    ? paginatedData.map((team) => (
+                        <tr
+                          key={team.id}
+                          className="hover:bg-gray-100 transition cursor-pointer"
+                          onClick={() => handleTeamSelect(team)}
+                        >
+                          <td className="px-6 py-4 text-sm font-medium text-gray-800">
+                            {team.name}
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <button className="text-blue-500 hover:text-blue-700 transition">
+                              View Recordings
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    : paginatedData.map((recording, index) => (
+                        <tr
+                          key={index}
+                          className="hover:bg-gray-100 transition"
+                        >
+                          <td className="px-4 py-4 text-center">
+                            <input
+                              type="checkbox"
+                              checked={selectedRecordings.some(
+                                (r) => r.filename === recording.filename
+                              )}
+                              onChange={() => handleCheckboxChange(recording)}
+                            />
+                          </td>
+                          <td className="px-6 py-4 text-sm font-medium text-gray-800 text-center">
+                            {recording.lastModified
+                              ? new Date(recording.lastModified).toLocaleString(
+                                  "en-GB",
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                    hour: "numeric",
+                                    minute: "2-digit",
+                                    second: "2-digit",
+                                    hour12: true,
+                                  }
+                                )
+                              : "Not Available"}
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <button
+                              className="text-blue-500 hover:text-blue-700 transition"
+                              onClick={() => handlePlay(startIndex + index)}
+                            >
+                              {playing === startIndex + index
+                                ? "Pause"
+                                : "Play"}
+                            </button>
+                            {playing === startIndex + index && (
+                              <HLSAudioPlayer
+                                url={recording.url}
+                                shouldPlay={true}
+                              />
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <button
+                              className="text-red-500 hover:text-red-700 transition"
+                              onClick={() => {
+                                setSelectedFileToDelete(recording);
+                                setMultiDeleteMode(false);
+                                setDeletePopup(true);
+                              }}
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                </tbody>
+              )}
+            </table>
           </div>
-
         )}
 
         {totalPages > 1 && (
@@ -534,7 +473,7 @@ export default function Calllog() {
                   <button
                     disabled={deleteloading}
                     onClick={handleConfirmDelete}
-                    className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                    className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
                   >
                     {deleteloading ? "Loading..." : "Confirm Delete"}
                   </button>
