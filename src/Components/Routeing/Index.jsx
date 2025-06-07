@@ -9,6 +9,7 @@ import AdminLogin from "../Admin/pages/AdminLogin";
 import AdminDashboard from "../Admin/pages/AdminDashboard";
 import User from "../Admin/pages/User";
 import Calllog from "../Admin/pages/Calllog";
+import Install from '../Appinstall.jsx'
 
 import {
   SuperAdminProtectedRoute,
@@ -21,6 +22,7 @@ export default function Index() {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<SuperAdminLogin />} />
+          <Route path="/install" element={<Install />} />
         <Route path="/adminlogin" element={<AdminLogin />} />
 
         {/* Super Admin Protected Routes */}
